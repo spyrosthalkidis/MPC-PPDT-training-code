@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AES.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ppdt</a> &gt; <a href="index.source.html" class="el_package">weka.finito</a> &gt; <span class="el_source">AES.java</span></div><h1>AES.java</h1><pre class="source lang-java linenums">package weka.finito;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
+
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+import java.util.Base64;
+
+public final class AES {
+	private SecretKey key;
+<span class="fc" id="L24">	private int iterations = 65536;</span>
+<span class="fc" id="L25">	private int key_length = 256;</span>
+<span class="fc" id="L26">	private final byte [] salt = &quot;123456789&quot;.getBytes();</span>
+<span class="fc" id="L27">	private final SecureRandom random = new SecureRandom();</span>
+	
+<span class="fc" id="L29">	private byte [] iv_bytes = new byte[16];</span>
+<span class="fc" id="L30">	private IvParameterSpec ivspec = null;  </span>
+<span class="fc" id="L31">	private String iv_string = null;</span>
+<span class="fc" id="L32">	private final Cipher cipher = Cipher.getInstance(&quot;AES/CBC/PKCS5Padding&quot;);</span>
+
+<span class="fc" id="L34">	public AES(String password) throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException {</span>
+<span class="fc" id="L35">		getKeyFromPassword(password);</span>
+<span class="fc" id="L36">	}</span>
+
+	public AES(String password, int iterations, int key_length) throws NoSuchPaddingException,
+			NoSuchAlgorithmException, InvalidKeySpecException {
+<span class="nc" id="L40">		this(password);</span>
+<span class="nc" id="L41">		this.iterations = iterations;</span>
+<span class="nc" id="L42">		this.key_length = key_length;</span>
+<span class="nc" id="L43">	}</span>
+	
+	public String getIV() {
+<span class="fc" id="L46">		return this.iv_string;</span>
+	}
+	
+	public void getKeyFromPassword(String password)
+		    throws NoSuchAlgorithmException, InvalidKeySpecException {
+<span class="fc" id="L51">		SecretKeyFactory factory = SecretKeyFactory.getInstance(&quot;PBKDF2WithHmacSHA256&quot;);</span>
+<span class="fc" id="L52">		KeySpec spec = new PBEKeySpec(password.toCharArray(), this.salt, this.iterations, this.key_length);</span>
+<span class="fc" id="L53">		this.key = new SecretKeySpec(factory.generateSecret(spec).getEncoded(), &quot;AES&quot;);</span>
+<span class="fc" id="L54">	}</span>
+	
+	public String encrypt(String strToEncrypt)
+			throws NoSuchAlgorithmException, NoSuchPaddingException, 
+			IllegalBlockSizeException, BadPaddingException, InvalidKeyException,
+			InvalidAlgorithmParameterException {
+		
+		// Generate new IV
+<span class="fc" id="L62">		random.nextBytes(iv_bytes);</span>
+<span class="fc" id="L63">		ivspec = new IvParameterSpec(iv_bytes);</span>
+<span class="fc" id="L64">		iv_string = Base64.getEncoder().encodeToString(iv_bytes);</span>
+		
+		// Run Encryption
+<span class="fc" id="L67">	    cipher.init(Cipher.ENCRYPT_MODE, this.key, ivspec);</span>
+<span class="fc" id="L68">		byte [] output = cipher.doFinal(strToEncrypt.getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc" id="L69">		return Base64.getEncoder().encodeToString(output);</span>
+	}
+
+	public String decrypt(String strToDecrypt, String iv)
+			throws NoSuchAlgorithmException, NoSuchPaddingException, 
+			IllegalBlockSizeException, BadPaddingException, InvalidKeyException, InvalidAlgorithmParameterException {
+		// Get IV
+<span class="fc" id="L76">		iv_string = iv;</span>
+<span class="fc" id="L77">		iv_bytes = Base64.getDecoder().decode(iv);</span>
+<span class="fc" id="L78">		ivspec = new IvParameterSpec(iv_bytes);</span>
+		
+		// Decrypt the value
+<span class="fc" id="L81">	    cipher.init(Cipher.DECRYPT_MODE, this.key, ivspec);</span>
+<span class="fc" id="L82">		byte [] output = cipher.doFinal(Base64.getDecoder().decode(strToDecrypt));</span>
+<span class="fc" id="L83">		return new String(output);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

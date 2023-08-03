@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>NodeInfo.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ppdt</a> &gt; <a href="index.source.html" class="el_package">weka.finito.structs</a> &gt; <span class="el_source">NodeInfo.java</span></div><h1>NodeInfo.java</h1><pre class="source lang-java linenums">package weka.finito.structs;
+
+import security.dgk.DGKOperations;
+import security.dgk.DGKPublicKey;
+import security.misc.HomomorphicException;
+import security.paillier.PaillierCipher;
+import security.paillier.PaillierPublicKey;
+
+import java.io.Serializable;
+import java.math.BigInteger;
+
+/**
+ * @author Andrew Quijano
+ * This class contains all the information about a specific node in the DT
+ */
+
+public final class NodeInfo implements Serializable, Comparable&lt;NodeInfo&gt; {
+
+	private static final long serialVersionUID = -3569139531917752891L;
+	public final boolean is_leaf;
+	public final String variable_name;
+	public final int comparisonType;
+    public final float threshold;
+
+	private BigInteger paillier;
+	private BigInteger dgk;
+
+<span class="fc" id="L28">    public NodeInfo(boolean is_leaf, String variable_name, int comparisonType) {</span>
+<span class="fc" id="L29">    	this.is_leaf = is_leaf;</span>
+<span class="fc" id="L30">    	this.variable_name = variable_name;</span>
+<span class="fc" id="L31">		this.comparisonType = comparisonType;</span>
+<span class="fc" id="L32">		this.threshold = 0;</span>
+<span class="fc" id="L33">    }</span>
+
+	public void encrypt(float threshold, int precision,
+						PaillierPublicKey paillier_public_key, DGKPublicKey dgk_public_key)
+			throws HomomorphicException {
+
+<span class="fc" id="L39">		int intermediateInteger = (int) (threshold * Math.pow(10, precision));</span>
+<span class="fc" id="L40">		BigInteger temp_thresh = BigInteger.valueOf(intermediateInteger);</span>
+<span class="pc bpc" id="L41" title="1 of 2 branches missed.">		if (paillier_public_key != null) {</span>
+<span class="fc" id="L42">			this.setPaillier(PaillierCipher.encrypt(temp_thresh, paillier_public_key));</span>
+		}
+<span class="pc bpc" id="L44" title="1 of 2 branches missed.">		if (dgk_public_key != null) {</span>
+<span class="fc" id="L45">			this.setDGK(DGKOperations.encrypt(temp_thresh, dgk_public_key));</span>
+		}
+<span class="fc" id="L47">	}</span>
+
+	public void setDGK(BigInteger dgk){
+<span class="fc" id="L50">		this.dgk = dgk;</span>
+<span class="fc" id="L51">	}</span>
+
+	public BigInteger getDGK() {
+<span class="fc" id="L54">		return this.dgk;</span>
+	}
+
+	public void setPaillier(BigInteger paillier) {
+<span class="fc" id="L58">		this.paillier = paillier;</span>
+<span class="fc" id="L59">	}</span>
+
+	public BigInteger getPaillier() {
+<span class="fc" id="L62">		return this.paillier;</span>
+	}
+
+    
+    public boolean isLeaf() {
+<span class="fc" id="L67">    	return this.is_leaf;</span>
+    }
+    
+    public String getVariableName() {
+<span class="fc" id="L71">    	return this.variable_name;</span>
+    }
+    
+    public String toString() {
+    	StringBuilder output;
+<span class="nc" id="L76">		output = new StringBuilder();</span>
+<span class="nc" id="L77">		output.append(&quot;var_name: &quot;).append(this.variable_name).append('\n');</span>
+<span class="nc" id="L78">    	output.append(&quot;Leaf: &quot;);</span>
+<span class="nc" id="L79">    	output.append(this.is_leaf);</span>
+<span class="nc" id="L80">    	output.append('\n');</span>
+<span class="nc" id="L81">    	output.append(&quot;comparison_type: &quot;);</span>
+<span class="nc" id="L82">    	output.append(comparisonType);</span>
+<span class="nc" id="L83">    	output.append('\n');</span>
+<span class="nc" id="L84">    	output.append(&quot;threshold: &quot;);</span>
+<span class="nc" id="L85">    	output.append(threshold);</span>
+<span class="nc" id="L86">    	output.append('\n');</span>
+<span class="nc" id="L87">    	return output.toString();</span>
+    }
+
+	public int compareTo(NodeInfo o) {
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">		boolean leaf_match = this.is_leaf == o.isLeaf();</span>
+<span class="fc" id="L92">		boolean variable_match = this.variable_name.equals(o.variable_name);</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">		boolean comparison_match = this.comparisonType == o.comparisonType;</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">		boolean threshold_match = this.threshold == o.threshold;</span>
+<span class="pc bpc" id="L95" title="4 of 8 branches missed.">		if (leaf_match &amp;&amp; variable_match &amp;&amp; comparison_match &amp;&amp; threshold_match) {</span>
+<span class="fc" id="L96">			return 0;</span>
+		}
+		else {
+<span class="nc" id="L99">			return this.variable_name.compareTo(o.variable_name);</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

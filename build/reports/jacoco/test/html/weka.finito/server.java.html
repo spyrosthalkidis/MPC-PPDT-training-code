@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>server.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ppdt</a> &gt; <a href="index.source.html" class="el_package">weka.finito</a> &gt; <span class="el_source">server.java</span></div><h1>server.java</h1><pre class="source lang-java linenums">package weka.finito;
+
+import java.io.File;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.PrintWriter;
+import java.io.IOException;
+
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+
+import java.lang.System;
+import java.util.concurrent.TimeUnit;
+
+import org.jetbrains.annotations.NotNull;
+import security.dgk.DGKPublicKey;
+import security.paillier.PaillierPublicKey;
+import weka.classifiers.trees.j48.BinC45ModelSelection;
+import weka.classifiers.trees.j48.C45PruneableClassifierTree;
+import weka.classifiers.trees.j48.ClassifierTree;
+import weka.core.Instances;
+
+import weka.core.SerializationHelper;
+import weka.finito.structs.level_order_site;
+import weka.finito.structs.NodeInfo;
+import weka.finito.utils.DataHandling;
+
+
+public final class server implements Runnable {
+
+<span class="fc" id="L35">	private static final String os = System.getProperty(&quot;os.name&quot;).toLowerCase();</span>
+	private final String training_data;
+	private final String [] level_site_ips;
+<span class="pc" id="L38">	private int [] level_site_ports = null;</span>
+<span class="pc" id="L39">	private int port = -1;</span>
+	private PaillierPublicKey paillier_public;
+	private DGKPublicKey dgk_public;
+	private final int precision;
+	private ClassifierTree ppdt;
+<span class="pc" id="L44">	private final List&lt;String&gt; leaves = new ArrayList&lt;&gt;();</span>
+<span class="pc" id="L45">	private final List&lt;level_order_site&gt; all_level_sites = new ArrayList&lt;&gt;();</span>
+
+	private final int server_port;
+
+    public static void main(String[] args) {
+<span class="nc" id="L50">        int port = 0;</span>
+<span class="nc" id="L51">		int precision = 0;</span>
+
+		// Get data for training.
+<span class="nc bnc" id="L54" title="All 2 branches missed.">		if (args.length != 1) {</span>
+<span class="nc" id="L55">			System.out.println(&quot;Missing Training Data set as an argument parameter&quot;);</span>
+<span class="nc" id="L56">			System.exit(1);</span>
+		}
+
+        try {
+<span class="nc" id="L60">            port = Integer.parseInt(System.getenv(&quot;PORT_NUM&quot;));</span>
+<span class="nc" id="L61">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L62">			System.out.println(&quot;No level site port provided&quot;);</span>
+<span class="nc" id="L63">            System.exit(1);</span>
+<span class="nc" id="L64">        }</span>
+
+		try {
+<span class="nc" id="L67">			precision = Integer.parseInt(System.getenv(&quot;PRECISION&quot;));</span>
+<span class="nc" id="L68">		} catch (NumberFormatException e) {</span>
+<span class="nc" id="L69">			System.out.println(&quot;Precision is not defined.&quot;);</span>
+<span class="nc" id="L70">			System.exit(1);</span>
+<span class="nc" id="L71">		}</span>
+        
+        // Pass data to level sites.
+<span class="nc" id="L74">        String level_domains_str = System.getenv(&quot;LEVEL_SITE_DOMAINS&quot;);</span>
+<span class="nc bnc" id="L75" title="All 4 branches missed.">        if(level_domains_str == null || level_domains_str.isEmpty()) {</span>
+<span class="nc" id="L76">			System.out.println(&quot;No level site domains provided&quot;);</span>
+<span class="nc" id="L77">            System.exit(1);</span>
+        }
+<span class="nc" id="L79">        String[] level_domains = level_domains_str.split(&quot;,&quot;);</span>
+
+		// Create and run the server.
+<span class="nc" id="L82">        System.out.println(&quot;Server Initialized and started running&quot;);</span>
+<span class="nc" id="L83">        server server = new server(args[0], level_domains, port, precision, port);</span>
+<span class="nc" id="L84">		server.run();</span>
+<span class="nc" id="L85">    }</span>
+
+	// For local host testing, (GitHub Actions CI, on PrivacyTest.java)
+	public server(String training_data, String [] level_site_ips, int [] level_site_ports, int precision,
+<span class="fc" id="L89">					   int server_port) {</span>
+<span class="fc" id="L90">		this.training_data = training_data;</span>
+<span class="fc" id="L91">		this.level_site_ips = level_site_ips;</span>
+<span class="fc" id="L92">		this.level_site_ports = level_site_ports;</span>
+<span class="fc" id="L93">		this.precision = precision;</span>
+<span class="fc" id="L94">		this.server_port = server_port;</span>
+<span class="fc" id="L95">	}</span>
+
+	// For Cloud environment, (Testing with Kubernetes)
+<span class="nc" id="L98">	public server(String training_data, String [] level_site_domains, int port, int precision, int server_port) {</span>
+<span class="nc" id="L99">		this.training_data = training_data;</span>
+<span class="nc" id="L100">		this.level_site_ips = level_site_domains;</span>
+<span class="nc" id="L101">		this.port = port;</span>
+<span class="nc" id="L102">		this.precision = precision;</span>
+<span class="nc" id="L103">		this.server_port = server_port;</span>
+<span class="nc" id="L104">	}</span>
+
+	private static String hash(String text) throws NoSuchAlgorithmException {
+<span class="fc" id="L107">		MessageDigest digest = MessageDigest.getInstance(&quot;SHA-256&quot;);</span>
+<span class="fc" id="L108">		byte[] hash = digest.digest(text.getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc" id="L109">		return Base64.getEncoder().encodeToString(hash);</span>
+	}
+
+	private void client_communication() throws Exception {
+<span class="fc" id="L113">		ServerSocket serverSocket = new ServerSocket(server_port);</span>
+<span class="fc" id="L114">		System.out.println(&quot;Server ready to get public keys from client&quot;);</span>
+
+<span class="fc" id="L116">		try (Socket client_site = serverSocket.accept()) {</span>
+<span class="fc" id="L117">			ObjectOutputStream to_client_site = new ObjectOutputStream(client_site.getOutputStream());</span>
+<span class="fc" id="L118">			ObjectInputStream from_client_site = new ObjectInputStream(client_site.getInputStream());</span>
+
+			// Receive a message from the client to get their keys
+<span class="fc" id="L121">			Object o = from_client_site.readObject();</span>
+<span class="fc" id="L122">			this.paillier_public = (PaillierPublicKey) o;</span>
+
+<span class="fc" id="L124">			o = from_client_site.readObject();</span>
+<span class="fc" id="L125">			this.dgk_public = (DGKPublicKey) o;</span>
+
+<span class="fc" id="L127">			System.out.println(&quot;Server collected keys from client&quot;);</span>
+
+			// Train level-sites
+<span class="fc" id="L130">			get_level_site_data(ppdt, all_level_sites);</span>
+
+<span class="fc" id="L132">			System.out.println(&quot;Server trained DT and created level-sites&quot;);</span>
+
+			// Now I know the leaves to send back to the client
+<span class="fc" id="L135">			String [] leaf_array = leaves.toArray(new String[0]);</span>
+<span class="fc" id="L136">			to_client_site.writeObject(leaf_array);</span>
+
+<span class="fc" id="L138">			System.out.println(&quot;Server sent the leaves back to the client&quot;);</span>
+		}
+<span class="fc" id="L140">		serverSocket.close();</span>
+<span class="fc" id="L141">	}</span>
+
+	private static boolean isUnix() {
+<span class="pc bpc" id="L144" title="4 of 6 branches missed.">		return (server.os.contains(&quot;nix&quot;) || server.os.contains(&quot;nux&quot;) || server.os.contains(&quot;aix&quot;));</span>
+	}
+
+	private static void printTree(ClassifierTree j48, String base_name)
+			throws Exception {
+<span class="fc" id="L149">		File output_dot_file = new File(&quot;output&quot;, base_name + &quot;.dot&quot;);</span>
+<span class="fc" id="L150">		File output_image_file = new File(&quot;output&quot;, base_name + &quot;.png&quot;);</span>
+
+<span class="fc" id="L152">		try (PrintWriter out = new PrintWriter(output_dot_file)) {</span>
+<span class="fc" id="L153">			out.println(j48.graph());</span>
+		}
+<span class="pc bpc" id="L155" title="1 of 2 branches missed.">		if (isUnix()) {</span>
+<span class="fc" id="L156">			String[] c = {&quot;dot&quot;, &quot;-Tpng&quot;, output_dot_file.toString(), &quot;-o&quot;, output_image_file.toString()};</span>
+			try {
+<span class="nc" id="L158">				Process p = Runtime.getRuntime().exec(c);</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">				if(!p.waitFor(5, TimeUnit.SECONDS)) {</span>
+<span class="nc" id="L160">					p.destroy();</span>
+				}
+			}
+<span class="fc" id="L163">			catch (IOException e) {</span>
+<span class="fc" id="L164">				System.out.println(&quot;Can't generate image, so skip for now...&quot;);</span>
+<span class="nc" id="L165">			}</span>
+		}
+<span class="fc" id="L167">	}</span>
+
+	// Reference:
+	// https://stackoverflow.com/questions/33556543/how-to-save-model-and-apply-it-on-a-test-dataset-on-java/33571811#33571811
+	// Build J48 as it uses C45?
+	// https://weka.sourceforge.io/doc.dev/weka/classifiers/trees/j48/C45ModelSelection.html
+	private static ClassifierTree train_decision_tree(String arff_file)
+			throws Exception {
+<span class="fc" id="L175">		File training_file = new File(arff_file);</span>
+<span class="fc" id="L176">		String base_name = training_file.getName().split(&quot;\\.&quot;)[0];</span>
+<span class="fc" id="L177">		File output_model_file = new File(&quot;output&quot;, base_name + &quot;.model&quot;);</span>
+		Instances train;
+
+<span class="fc" id="L180">		File dir = new File(&quot;output&quot;);</span>
+<span class="fc bfc" id="L181" title="All 2 branches covered.">		if (!dir.exists()) {</span>
+<span class="pc bpc" id="L182" title="1 of 2 branches missed.">			if(!dir.mkdirs()) {</span>
+<span class="nc" id="L183">				System.err.println(&quot;Error Creating output directory to store models and images!&quot;);</span>
+<span class="nc" id="L184">				System.exit(1);</span>
+			}
+		}
+
+<span class="fc bfc" id="L188" title="All 2 branches covered.">		if (arff_file.endsWith(&quot;.model&quot;)) {</span>
+<span class="fc" id="L189">			ClassifierTree j48 = (ClassifierTree) SerializationHelper.read(arff_file);</span>
+<span class="fc" id="L190">			printTree(j48, base_name);</span>
+<span class="fc" id="L191">			return j48;</span>
+		}
+		else {
+<span class="fc" id="L194">			train = DataHandling.read_data(arff_file);</span>
+		}
+<span class="fc" id="L196">		train.setClassIndex(train.numAttributes() - 1);</span>
+
+		// https://weka.sourceforge.io/doc.dev/weka/classifiers/trees/j48/C45ModelSelection.html
+		// J48 -B -C 0.25 -M 2
+		// -M 2 is minimum 2, DEFAULT
+		// -B this tree ONLY works for binary split is true, so pick this model...
+		// -C 0.25, default confidence
+<span class="fc" id="L203">		BinC45ModelSelection j48_model = new BinC45ModelSelection(2, train, true, false);</span>
+<span class="fc" id="L204">		ClassifierTree j48 = new C45PruneableClassifierTree(j48_model, true, (float) 0.25, true, true, true);</span>
+
+<span class="fc" id="L206">	    j48.buildClassifier(train);</span>
+<span class="fc" id="L207">		SerializationHelper.write(output_model_file.toString(), j48);</span>
+<span class="fc" id="L208">		printTree(j48, base_name);</span>
+<span class="fc" id="L209">	    return j48;</span>
+	}
+
+	// Given a Plain-text Decision Tree, split the data up for each level site.
+	private void get_level_site_data(ClassifierTree root, List&lt;level_order_site&gt; all_level_sites)
+			throws Exception {
+
+<span class="pc bpc" id="L216" title="1 of 2 branches missed.">		if (root == null) {</span>
+<span class="nc" id="L217">			return;</span>
+		}
+
+<span class="fc" id="L220">		Queue&lt;ClassifierTree&gt; q = new LinkedList&lt;&gt;();</span>
+<span class="fc" id="L221">		q.add(root);</span>
+<span class="fc" id="L222">		int level = 0;</span>
+
+<span class="fc bfc" id="L224" title="All 2 branches covered.">		while (!q.isEmpty()) {</span>
+<span class="fc" id="L225">			level_order_site Level_Order_S = new level_order_site(level, paillier_public, dgk_public);</span>
+<span class="fc" id="L226">			int n = q.size();</span>
+
+<span class="fc bfc" id="L228" title="All 2 branches covered.">			while (n &gt; 0) {</span>
+
+<span class="fc" id="L230">				ClassifierTree p = q.peek();</span>
+<span class="fc" id="L231">				q.remove();</span>
+
+<span class="fc" id="L233">				NodeInfo node_info = null;</span>
+<span class="pc bpc" id="L234" title="1 of 2 branches missed.">				assert p != null;</span>
+<span class="fc bfc" id="L235" title="All 2 branches covered.">				if (p.isLeaf()) {</span>
+<span class="fc" id="L236">					String variable = p.getLocalModel().dumpLabel(0, p.getTrainingData());</span>
+<span class="fc" id="L237">					leaves.add(variable);</span>
+<span class="fc" id="L238">					node_info = new NodeInfo(true, hash(variable), 0);</span>
+<span class="fc" id="L239">					Level_Order_S.append_data(node_info);</span>
+<span class="fc" id="L240">				}</span>
+				else {
+<span class="fc" id="L242">					float threshold = 0;</span>
+<span class="fc bfc" id="L243" title="All 2 branches covered.">					for (int i = 0; i &lt; p.getSons().length; i++) {</span>
+<span class="fc" id="L244">						String leftSide = p.getLocalModel().leftSide(p.getTrainingData());</span>
+<span class="fc" id="L245">						String rightSide = p.getLocalModel().rightSide(i, p.getTrainingData());</span>
+
+<span class="fc" id="L247">						char[] rightSideChar = rightSide.toCharArray();</span>
+<span class="fc" id="L248">						int type = 0;</span>
+
+<span class="fc" id="L250">						char[] rightValue = new char[0];</span>
+<span class="fc bfc" id="L251" title="All 2 branches covered.">						if (rightSideChar[1] == '=') {</span>
+<span class="fc" id="L252">							type = 1;</span>
+<span class="fc" id="L253">							rightValue = new char[rightSideChar.length - 3];</span>
+<span class="fc" id="L254">							System.arraycopy(rightSideChar, 3, rightValue, 0, rightSideChar.length - 3);</span>
+<span class="fc" id="L255">							String rightValueStr = new String(rightValue);</span>
+<span class="fc bfc" id="L256" title="All 2 branches covered.">							if (rightValueStr.equals(&quot;other&quot;)) {</span>
+<span class="fc" id="L257">								type = 2;</span>
+<span class="fc" id="L258">								threshold = 1;</span>
+							}
+<span class="fc" id="L260">						}</span>
+<span class="fc bfc" id="L261" title="All 2 branches covered.">						else if (rightSideChar[1] == '!') {</span>
+<span class="fc" id="L262">							type = 4;</span>
+<span class="pc bpc" id="L263" title="1 of 2 branches missed.">							if (rightSideChar[2] == '=') {</span>
+<span class="fc" id="L264">								rightValue = new char[rightSideChar.length - 4];</span>
+<span class="fc" id="L265">								System.arraycopy(rightSideChar, 4, rightValue, 0, rightSideChar.length - 4);</span>
+<span class="fc" id="L266">								String rightValueStr = new String(rightValue);</span>
+<span class="fc bfc" id="L267" title="All 2 branches covered.">								if (rightValueStr.equals(&quot;other&quot;)) {</span>
+<span class="fc" id="L268">									threshold = 0;</span>
+								}
+<span class="pc bpc" id="L270" title="1 of 8 branches missed.">								if ((rightValueStr.equals(&quot;t&quot;))||(rightValueStr.equals(&quot;f&quot;))||(rightValueStr.equals(&quot;yes&quot;))||(rightValueStr.equals(&quot;no&quot;))) {</span>
+<span class="fc" id="L271">									type = 6;</span>
+								}
+<span class="fc" id="L273">							}</span>
+						}
+<span class="fc bfc" id="L275" title="All 2 branches covered.">						else if (rightSideChar[1] == '&gt;') {</span>
+<span class="pc bpc" id="L276" title="1 of 2 branches missed.">							if (rightSideChar[2] == '=') {</span>
+<span class="nc" id="L277">								type = 2;</span>
+<span class="nc" id="L278">								rightValue = new char[rightSideChar.length - 4];</span>
+<span class="nc" id="L279">								System.arraycopy(rightSideChar, 4, rightValue, 0, rightSideChar.length - 4);</span>
+							}
+							else {
+<span class="fc" id="L282">								type = 3;</span>
+<span class="fc" id="L283">								rightValue = new char[rightSideChar.length - 3];</span>
+<span class="fc" id="L284">								System.arraycopy(rightSideChar, 3, rightValue, 0, rightSideChar.length - 3);</span>
+							}
+						}
+<span class="pc bpc" id="L287" title="1 of 2 branches missed.">						else if (rightSideChar[1] == '&lt;') {</span>
+<span class="pc bpc" id="L288" title="1 of 2 branches missed.">							if (rightSideChar[2] == '=') {</span>
+<span class="fc" id="L289">								type = 4;</span>
+<span class="fc" id="L290">								rightValue = new char[rightSideChar.length - 4];</span>
+<span class="fc" id="L291">								System.arraycopy(rightSideChar, 4, rightValue, 0, rightSideChar.length - 4);</span>
+							}
+							else {
+<span class="nc" id="L294">								type = 5;</span>
+<span class="nc" id="L295">								rightValue = new char[rightSideChar.length - 3];</span>
+<span class="nc" id="L296">								System.arraycopy(rightSideChar, 3, rightValue, 0, rightSideChar.length - 3);</span>
+							}
+						}
+
+<span class="fc" id="L300">						String rightValueStr = new String(rightValue);</span>
+
+<span class="fc bfc" id="L302" title="All 2 branches covered.">						if (!rightValueStr.equals(&quot;other&quot;)) {</span>
+<span class="fc bfc" id="L303" title="All 4 branches covered.">							if (rightValueStr.equals(&quot;t&quot;) || rightValueStr.equals(&quot;yes&quot;)) {</span>
+<span class="fc" id="L304">								threshold = 1;</span>
+							}
+<span class="pc bpc" id="L306" title="1 of 4 branches missed.">							else if (rightValueStr.equals(&quot;f&quot;) || rightValueStr.equals(&quot;no&quot;)) {</span>
+<span class="fc" id="L307">								threshold = 0;</span>
+							}
+							else {
+<span class="fc" id="L310">								threshold = Float.parseFloat(rightValueStr);</span>
+							}
+						}
+<span class="fc" id="L313">						node_info = new NodeInfo(false, leftSide, type);</span>
+<span class="fc" id="L314">						node_info.encrypt(threshold, precision, paillier_public, dgk_public);</span>
+<span class="fc" id="L315">						q.add(p.getSons()[i]);</span>
+					}
+
+<span class="pc bpc" id="L318" title="1 of 2 branches missed.">					assert node_info != null;</span>
+<span class="pc bpc" id="L319" title="1 of 2 branches missed.">					if (!node_info.is_leaf){</span>
+<span class="fc" id="L320">						NodeInfo additionalNode = getNodeInfo(node_info);</span>
+<span class="fc" id="L321">						additionalNode.encrypt(threshold, precision, paillier_public, dgk_public);</span>
+<span class="fc" id="L322">						Level_Order_S.append_data(additionalNode);</span>
+					}
+<span class="fc" id="L324">					Level_Order_S.append_data(node_info);</span>
+				}// else
+<span class="fc" id="L326">				n--;</span>
+<span class="fc" id="L327">			} // While n &gt; 0 (nodes &gt; 0)</span>
+<span class="fc" id="L328">			all_level_sites.add(Level_Order_S);</span>
+<span class="fc" id="L329">			++level;</span>
+<span class="fc" id="L330">		} // While Tree Not Empty</span>
+<span class="fc" id="L331">	}</span>
+
+	@NotNull
+	private static NodeInfo getNodeInfo(NodeInfo node_info) {
+<span class="fc" id="L335">		NodeInfo additionalNode = null;</span>
+<span class="pc bpc" id="L336" title="1 of 2 branches missed.">		if (node_info.comparisonType == 1) {</span>
+<span class="nc" id="L337">			additionalNode = new NodeInfo(false, node_info.getVariableName(), 6);</span>
+		}
+<span class="pc bpc" id="L339" title="1 of 2 branches missed.">		else if (node_info.comparisonType == 2) {</span>
+<span class="nc" id="L340">			additionalNode = new NodeInfo(false, node_info.getVariableName(), 5);</span>
+		}
+<span class="fc bfc" id="L342" title="All 2 branches covered.">		else if (node_info.comparisonType == 3) {</span>
+<span class="fc" id="L343">			additionalNode = new NodeInfo(false, node_info.getVariableName(), 4);</span>
+		}
+<span class="fc bfc" id="L345" title="All 2 branches covered.">		else if (node_info.comparisonType == 4) {</span>
+<span class="fc" id="L346">			additionalNode = new NodeInfo(false, node_info.getVariableName(), 3);</span>
+		}
+<span class="pc bpc" id="L348" title="1 of 2 branches missed.">		else if (node_info.comparisonType == 5) {</span>
+<span class="nc" id="L349">			additionalNode = new NodeInfo(false, node_info.getVariableName(), 2);</span>
+		}
+<span class="pc bpc" id="L351" title="1 of 2 branches missed.">		else if (node_info.comparisonType == 6) {</span>
+<span class="fc" id="L352">			additionalNode = new NodeInfo(false, node_info.getVariableName(), 1);</span>
+		}
+<span class="pc bpc" id="L354" title="1 of 2 branches missed.">		assert additionalNode != null;</span>
+<span class="fc" id="L355">		return additionalNode;</span>
+	}
+
+	public void run() {
+
+		try {
+			// Train the DT
+<span class="fc" id="L362">			ppdt = train_decision_tree(this.training_data);</span>
+			// Get Public Keys from Client AND train level-sites
+<span class="fc" id="L364">			client_communication();</span>
+		}
+<span class="nc" id="L366">		catch (Exception e) {</span>
+<span class="nc" id="L367">			throw new RuntimeException(e);</span>
+<span class="fc" id="L368">		}</span>
+
+		ObjectOutputStream to_level_site;
+		ObjectInputStream from_level_site;
+		int port_to_connect;
+
+		// There should be at least 1 IP Address for each level site
+<span class="pc bpc" id="L375" title="1 of 2 branches missed.">		if(this.level_site_ips.length &lt; all_level_sites.size()) {</span>
+<span class="nc" id="L376">			String error = String.format(&quot;Please create more level-sites for the &quot; +</span>
+					&quot;decision tree trained from %s&quot;, training_data);
+<span class="nc" id="L378">			throw new RuntimeException(error);</span>
+		}
+
+		// Send the data to each level site, use data in-transit encryption
+<span class="fc bfc" id="L382" title="All 2 branches covered.">		for (int i = 0; i &lt; all_level_sites.size(); i++) {</span>
+<span class="fc" id="L383">			level_order_site current_level_site = all_level_sites.get(i);</span>
+
+<span class="pc bpc" id="L385" title="1 of 2 branches missed.">			if (port == -1) {</span>
+<span class="fc" id="L386">				port_to_connect = this.level_site_ports[i];</span>
+			}
+			else {
+<span class="nc" id="L389">				port_to_connect = this.port;</span>
+			}
+
+<span class="fc" id="L392">			try (Socket level_site = new Socket(level_site_ips[i], port_to_connect)) {</span>
+<span class="fc" id="L393">				System.out.println(&quot;training level-site &quot; + i + &quot; on port:&quot; + port_to_connect);</span>
+<span class="fc" id="L394">				to_level_site = new ObjectOutputStream(level_site.getOutputStream());</span>
+<span class="fc" id="L395">				from_level_site = new ObjectInputStream(level_site.getInputStream());</span>
+<span class="fc" id="L396">				to_level_site.writeObject(current_level_site);</span>
+<span class="pc bpc" id="L397" title="1 of 2 branches missed.">				if(from_level_site.readBoolean()) {</span>
+<span class="fc" id="L398">					System.out.println(&quot;Training Successful on port:&quot; + port_to_connect);</span>
+				}
+				else {
+<span class="nc" id="L401">					System.out.println(&quot;Training NOT Successful on port:&quot; + port_to_connect);</span>
+				}
+			}
+<span class="nc" id="L404">			catch (IOException e) {</span>
+<span class="nc" id="L405">				throw new RuntimeException(e);</span>
+<span class="fc" id="L406">			}</span>
+		}
+<span class="fc" id="L408">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

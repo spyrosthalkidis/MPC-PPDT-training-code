@@ -1,0 +1,1256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="EvaluationTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2023-07-31T19:01:28" hostname="salonica" time="146.403">
+  <properties/>
+  <testcase name="test_all" classname="EvaluationTest" time="146.403"/>
+  <system-out><![CDATA[Running Full Local Test...
+Working Directory = /home/spyros/MPC-PPDT-training
+data/D1.model
+Ready to accept connections at: 9000
+Ready to accept connections at: 9001
+Ready to accept connections at: 9002
+Ready to accept connections at: 9003
+Ready to accept connections at: 9004
+Ready to accept connections at: 9005
+Ready to accept connections at: 9006
+Ready to accept connections at: 9007
+Ready to accept connections at: 9008
+Ready to accept connections at: 9009
+Need to generate keys...
+Generating Keys...
+Completed generating vp, vq
+Can't generate image, so skip for now...
+Server ready to get public keys from client
+While Loop 1: n, p and q is generated.
+While loop 2: h is generated
+While loop 3: g is generated
+Generating hashmaps...
+FINISHED WITH DGK KEY GENERATION in 4 seconds!
+Paillier Keys have 2048 bits
+Completed building Paillier Key Pair!
+Initial value:18
+Value to be compared with:1800
+Connecting to 127.0.0.1:10000
+Server collected keys from client
+Server trained DT and created level-sites
+Server sent the leaves back to the client
+training level-site 0 on port:9000
+Training Successful on port:9000
+training level-site 1 on port:9001
+Ready to accept connections at: 9000
+Local Test: 127.0.0.1:9000
+Client connected to level 0
+Ready to accept connections at: 9000
+j=0
+Comparison took 0.094691 ms
+Training Successful on port:9001
+training level-site 2 on port:9002
+Ready to accept connections at: 9001
+j=1
+Comparison took 0.030000 ms
+Modified Protocol 3 selected
+New index:0
+Total Level-Site run-time took 991.669227 ms
+Local Test: 127.0.0.1:9001
+Client connected to level 1
+Ready to accept connections at: 9001
+j=0
+j=1
+j=2
+Comparison took 0.057341 ms
+Training Successful on port:9002
+training level-site 3 on port:9003
+Ready to accept connections at: 9002
+j=3
+Comparison took 0.019123 ms
+Modified Protocol 3 selected
+New index:1
+Total Level-Site run-time took 932.863686 ms
+Local Test: 127.0.0.1:9002
+Client connected to level 2
+Ready to accept connections at: 9002
+j=0
+j=1
+j=2
+j=3
+j=4
+j=5
+j=6
+Comparison took 0.032390 ms
+Training Successful on port:9003
+Ready to accept connections at: 9003
+New index:3
+Total Level-Site run-time took 579.340954 ms
+Local Test: 127.0.0.1:9003
+Client connected to level 3
+Ready to accept connections at: 9003
+j=0
+j=1
+j=2
+j=3
+j=4
+j=5
+j=6
+Terminal leaf:wHpVHaTM+mc4XGJbBb1GHC5FW80csZRqFHIoZSLlY2g=
+Total Level-Site run-time took 41.976428 ms
+The Classification is: 388.36 (3.0/2.0)
+It took 2554.997916 ms to classify
+Deleted the file: dgk
+Server Stopped on port 9005
+Server Stopped on port 9001
+Server Stopped on port 9007
+Server Stopped on port 9003
+Server Stopped on port 9009
+Server Stopped on port 9002
+Server Stopped on port 9008
+Server Stopped on port 9006
+Server Stopped on port 9000
+Server Stopped on port 9004
+Deleted the file: dgk.pub
+Deleted the file: paillier
+Deleted the file: paillier.pub
+Deleted the file: classes.txt
+388.36 (3.0/2.0) =!= 388.36 (3.0/2.0)
+data/D2.arff
+Ready to accept connections at: 9000
+Ready to accept connections at: 9001
+Ready to accept connections at: 9002
+Ready to accept connections at: 9003
+Ready to accept connections at: 9004
+Ready to accept connections at: 9005
+Ready to accept connections at: 9006
+Ready to accept connections at: 9007
+Ready to accept connections at: 9008
+Ready to accept connections at: 9009
+Need to generate keys...
+Generating Keys...
+Completed generating vp, vq
+Can't generate image, so skip for now...
+Server ready to get public keys from client
+While Loop 1: n, p and q is generated.
+While loop 2: h is generated
+While loop 3: g is generated
+Generating hashmaps...
+FINISHED WITH DGK KEY GENERATION in 5 seconds!
+Paillier Keys have 2048 bits
+Completed building Paillier Key Pair!
+Initial value:8
+Value to be compared with:800
+Connecting to 127.0.0.1:10000
+Server collected keys from client
+Server trained DT and created level-sites
+Server sent the leaves back to the client
+training level-site 0 on port:9000
+Training Successful on port:9000
+Ready to accept connections at: 9000
+training level-site 1 on port:9001
+Training Successful on port:9001
+Ready to accept connections at: 9001
+training level-site 2 on port:9002
+Local Test: 127.0.0.1:9000
+Client connected to level 0
+Ready to accept connections at: 9000
+j=0
+Comparison took 0.031475 ms
+j=1
+Comparison took 0.036463 ms
+Modified Protocol 3 selected
+New index:0
+Total Level-Site run-time took 870.964877 ms
+Local Test: 127.0.0.1:9001
+Client connected to level 1
+Ready to accept connections at: 9001
+j=0
+j=1
+j=2
+Comparison took 0.028180 ms
+Training Successful on port:9002
+Ready to accept connections at: 9002
+New index:1
+Total Level-Site run-time took 550.103896 ms
+Local Test: 127.0.0.1:9002
+Client connected to level 2
+Ready to accept connections at: 9002
+j=0
+j=1
+j=2
+Terminal leaf:mxMn3mWHekm1skzkhiD4hPDWEBDQwXkTshfjLv3oWJw=
+Total Level-Site run-time took 44.804165 ms
+The Classification is: 58 (3.0/2.0)
+It took 1513.076782 ms to classify
+Server Stopped on port 9000
+Server Stopped on port 9006
+Server Stopped on port 9004
+Server Stopped on port 9009
+Server Stopped on port 9002
+Server Stopped on port 9007
+Deleted the file: dgk
+Deleted the file: dgk.pub
+Deleted the file: paillier
+Deleted the file: paillier.pub
+Deleted the file: classes.txt
+Server Stopped on port 9001
+Server Stopped on port 9005
+Server Stopped on port 9008
+Server Stopped on port 9003
+58 (3.0/2.0) =!= 58 (3.0/2.0)
+data/D3.arff
+Ready to accept connections at: 9000
+Ready to accept connections at: 9001
+Ready to accept connections at: 9002
+Ready to accept connections at: 9003
+Ready to accept connections at: 9004
+Ready to accept connections at: 9005
+Ready to accept connections at: 9006
+Ready to accept connections at: 9007
+Ready to accept connections at: 9008
+Ready to accept connections at: 9009
+Need to generate keys...
+Generating Keys...
+Completed generating vp, vq
+Can't generate image, so skip for now...
+Server ready to get public keys from client
+While Loop 1: n, p and q is generated.
+While loop 2: h is generated
+While loop 3: g is generated
+Generating hashmaps...
+FINISHED WITH DGK KEY GENERATION in 4 seconds!
+Paillier Keys have 2048 bits
+Completed building Paillier Key Pair!
+Initial value:9
+Value to be compared with:900
+Connecting to 127.0.0.1:10000
+Server collected keys from client
+Server trained DT and created level-sites
+Server sent the leaves back to the client
+training level-site 0 on port:9000
+Training Successful on port:9000
+Ready to accept connections at: 9000
+training level-site 1 on port:9001
+Training Successful on port:9001
+Ready to accept connections at: 9001
+training level-site 2 on port:9002
+Local Test: 127.0.0.1:9000
+Client connected to level 0
+Ready to accept connections at: 9000
+j=0
+Comparison took 0.028118 ms
+j=1
+Comparison took 0.020428 ms
+Modified Protocol 3 selected
+New index:0
+Total Level-Site run-time took 958.894055 ms
+Local Test: 127.0.0.1:9001
+Client connected to level 1
+Ready to accept connections at: 9001
+j=0
+j=1
+j=2
+Comparison took 0.027415 ms
+Training Successful on port:9002
+Ready to accept connections at: 9002
+training level-site 3 on port:9003
+New index:1
+Total Level-Site run-time took 519.350025 ms
+Local Test: 127.0.0.1:9002
+Client connected to level 2
+Ready to accept connections at: 9002
+j=0
+j=1
+j=2
+j=3
+Terminal leaf:0UfOUAOIyGYIfcVNBgWqrIr2aSDvBhi9MhROKECDp+0=
+Total Level-Site run-time took 41.987481 ms
+The Classification is: 190 (3.0)
+It took 1524.740147 ms to classify
+Training Successful on port:9003
+Ready to accept connections at: 9003
+Server Stopped on port 9000
+Server Stopped on port 9003
+Server Stopped on port 9007
+Server Stopped on port 9006
+Deleted the file: dgk
+Server Stopped on port 9008
+Deleted the file: dgk.pub
+Server Stopped on port 9009
+Deleted the file: paillier
+Server Stopped on port 9005
+Deleted the file: paillier.pub
+Server Stopped on port 9004
+Deleted the file: classes.txt
+190 (3.0) =!= 190 (3.0)
+Server Stopped on port 9001
+Server Stopped on port 9002
+data/D4.arff
+Ready to accept connections at: 9000
+Ready to accept connections at: 9001
+Ready to accept connections at: 9002
+Ready to accept connections at: 9003
+Ready to accept connections at: 9004
+Ready to accept connections at: 9005
+Ready to accept connections at: 9006
+Ready to accept connections at: 9007
+Ready to accept connections at: 9008
+Ready to accept connections at: 9009
+Need to generate keys...
+Generating Keys...
+Completed generating vp, vq
+Can't generate image, so skip for now...
+Server ready to get public keys from client
+While Loop 1: n, p and q is generated.
+While loop 2: h is generated
+While loop 3: g is generated
+Generating hashmaps...
+FINISHED WITH DGK KEY GENERATION in 5 seconds!
+Paillier Keys have 2048 bits
+Completed building Paillier Key Pair!
+Initial value:14
+Value to be compared with:1400
+Connecting to 127.0.0.1:10000
+Server collected keys from client
+Server trained DT and created level-sites
+Server sent the leaves back to the client
+training level-site 0 on port:9000
+Training Successful on port:9000
+training level-site 1 on port:9001
+Ready to accept connections at: 9000
+Training Successful on port:9001
+Ready to accept connections at: 9001
+training level-site 2 on port:9002
+Local Test: 127.0.0.1:9000
+Client connected to level 0
+Ready to accept connections at: 9000
+j=0
+Comparison took 0.034527 ms
+Shouldn't be here: x > y bits
+j=1
+Comparison took 0.020080 ms
+Modified Protocol 3 selected
+New index:0
+Total Level-Site run-time took 807.839438 ms
+Local Test: 127.0.0.1:9001
+Client connected to level 1
+Ready to accept connections at: 9001
+j=0
+j=1
+j=2
+Comparison took 0.023730 ms
+Training Successful on port:9002
+Ready to accept connections at: 9002
+training level-site 3 on port:9003
+New index:1
+Total Level-Site run-time took 599.251820 ms
+Local Test: 127.0.0.1:9002
+Client connected to level 2
+Ready to accept connections at: 9002
+j=0
+j=1
+j=2
+j=3
+j=4
+Comparison took 0.023444 ms
+j=5
+Comparison took 0.018546 ms
+Training Successful on port:9003
+Ready to accept connections at: 9003
+Modified Protocol 3 selected
+New index:2
+Total Level-Site run-time took 913.634108 ms
+Local Test: 127.0.0.1:9003
+Client connected to level 3
+Ready to accept connections at: 9003
+j=0
+j=1
+j=2
+j=3
+j=4
+j=5
+Terminal leaf:aGAxrKmJqcAFf5QuRBN0266II1OIn2SFf6TpMIoAjTY=
+Total Level-Site run-time took 42.463218 ms
+The Classification is: 157 (3.0/2.0)
+It took 2371.073994 ms to classify
+Server Stopped on port 9001
+Server Stopped on port 9006
+Server Stopped on port 9005
+Server Stopped on port 9004
+Server Stopped on port 9002
+Server Stopped on port 9000
+Server Stopped on port 9007
+Server Stopped on port 9003
+Server Stopped on port 9009
+Deleted the file: dgk
+Deleted the file: dgk.pub
+Server Stopped on port 9008
+Deleted the file: paillier
+Deleted the file: paillier.pub
+Deleted the file: classes.txt
+157 (3.0/2.0) =!= 157 (3.0/2.0)
+data/D5.arff
+Ready to accept connections at: 9000
+Ready to accept connections at: 9001
+Ready to accept connections at: 9002
+Ready to accept connections at: 9003
+Ready to accept connections at: 9004
+Ready to accept connections at: 9005
+Ready to accept connections at: 9006
+Ready to accept connections at: 9007
+Ready to accept connections at: 9008
+Ready to accept connections at: 9009
+Need to generate keys...
+Generating Keys...
+Completed generating vp, vq
+Can't generate image, so skip for now...
+Server ready to get public keys from client
+While Loop 1: n, p and q is generated.
+While loop 2: h is generated
+While loop 3: g is generated
+Generating hashmaps...
+FINISHED WITH DGK KEY GENERATION in 4 seconds!
+Paillier Keys have 2048 bits
+Completed building Paillier Key Pair!
+Initial value:12.5
+Value to be compared with:1250
+Connecting to 127.0.0.1:10000
+Server collected keys from client
+Server trained DT and created level-sites
+Server sent the leaves back to the client
+training level-site 0 on port:9000
+Training Successful on port:9000
+Ready to accept connections at: 9000
+training level-site 1 on port:9001
+Training Successful on port:9001
+Ready to accept connections at: 9001
+training level-site 2 on port:9002
+Local Test: 127.0.0.1:9000
+Client connected to level 0
+Ready to accept connections at: 9000
+j=0
+Comparison took 0.030569 ms
+j=1
+Comparison took 0.019249 ms
+Modified Protocol 3 selected
+Training Successful on port:9002
+Ready to accept connections at: 9002
+training level-site 3 on port:9003
+New index:0
+Total Level-Site run-time took 915.486932 ms
+Local Test: 127.0.0.1:9001
+Client connected to level 1
+Ready to accept connections at: 9001
+j=0
+j=1
+j=2
+Comparison took 0.023931 ms
+New index:1
+Total Level-Site run-time took 551.837477 ms
+Local Test: 127.0.0.1:9002
+Client connected to level 2
+Ready to accept connections at: 9002
+j=0
+j=1
+j=2
+j=3
+j=4
+Comparison took 0.035015 ms
+Training Successful on port:9003
+Ready to accept connections at: 9003
+training level-site 4 on port:9004
+j=5
+Comparison took 0.020427 ms
+Modified Protocol 3 selected
+New index:2
+Total Level-Site run-time took 897.707723 ms
+Local Test: 127.0.0.1:9003
+Client connected to level 3
+Ready to accept connections at: 9003
+j=0
+j=1
+j=2
+j=3
+j=4
+j=5
+Comparison took 0.039465 ms
+New index:5
+Total Level-Site run-time took 535.783973 ms
+Local Test: 127.0.0.1:9004
+Client connected to level 4
+Training Successful on port:9004
+Ready to accept connections at: 9004
+Ready to accept connections at: 9004
+j=0
+Terminal leaf:ogD5xFZ/7CIzogK1pQMY2Xq6BLxrQk5leW8FsJhlbFc=
+Total Level-Site run-time took 43.866043 ms
+The Classification is: 19 (2.0)
+It took 3037.718758 ms to classify
+Server Stopped on port 9003
+Server Stopped on port 9007
+Server Stopped on port 9006
+Server Stopped on port 9004
+Server Stopped on port 9005
+Server Stopped on port 9002
+Server Stopped on port 9001
+Server Stopped on port 9000
+Server Stopped on port 9008
+Deleted the file: dgk
+Server Stopped on port 9009
+Deleted the file: dgk.pub
+Deleted the file: paillier
+Deleted the file: paillier.pub
+Deleted the file: classes.txt
+19 (2.0) =!= 19 (2.0)
+data/diabetes.arff
+Ready to accept connections at: 9000
+Ready to accept connections at: 9001
+Ready to accept connections at: 9002
+Ready to accept connections at: 9003
+Ready to accept connections at: 9004
+Ready to accept connections at: 9005
+Ready to accept connections at: 9006
+Ready to accept connections at: 9007
+Ready to accept connections at: 9008
+Ready to accept connections at: 9009
+Need to generate keys...
+Generating Keys...
+Completed generating vp, vq
+Can't generate image, so skip for now...
+Server ready to get public keys from client
+While Loop 1: n, p and q is generated.
+While loop 2: h is generated
+While loop 3: g is generated
+Generating hashmaps...
+FINISHED WITH DGK KEY GENERATION in 4 seconds!
+Paillier Keys have 2048 bits
+Completed building Paillier Key Pair!
+Initial value:120
+Value to be compared with:12000
+Initial value:30
+Value to be compared with:3000
+Initial value:30
+Value to be compared with:3000
+Initial value:1
+Value to be compared with:100
+Initial value:5
+Value to be compared with:500
+Connecting to 127.0.0.1:10000
+Server collected keys from client
+Server trained DT and created level-sites
+Server sent the leaves back to the client
+training level-site 0 on port:9000
+Training Successful on port:9000
+Ready to accept connections at: 9000
+training level-site 1 on port:9001
+Training Successful on port:9001
+Ready to accept connections at: 9001
+training level-site 2 on port:9002
+Local Test: 127.0.0.1:9000
+Client connected to level 0
+Ready to accept connections at: 9000
+j=0
+Comparison took 0.027038 ms
+New index:0
+Total Level-Site run-time took 533.756116 ms
+Local Test: 127.0.0.1:9001
+Client connected to level 1
+Ready to accept connections at: 9001
+j=0
+Comparison took 0.019418 ms
+j=1
+Comparison took 0.014940 ms
+Training Successful on port:9002
+Ready to accept connections at: 9002
+training level-site 3 on port:9003
+Modified Protocol 3 selected
+New index:0
+Total Level-Site run-time took 886.754882 ms
+Local Test: 127.0.0.1:9002
+Client connected to level 2
+Ready to accept connections at: 9002
+j=0
+j=1
+Comparison took 0.027176 ms
+j=2
+Comparison took 0.016691 ms
+Training Successful on port:9003
+Ready to accept connections at: 9003
+training level-site 4 on port:9004
+Modified Protocol 3 selected
+New index:1
+Total Level-Site run-time took 894.788446 ms
+Local Test: 127.0.0.1:9003
+Client connected to level 3
+Ready to accept connections at: 9003
+j=0
+j=1
+Comparison took 0.021678 ms
+j=2
+Comparison took 0.015876 ms
+Training Successful on port:9004
+Ready to accept connections at: 9004
+training level-site 5 on port:9005
+Modified Protocol 3 selected
+New index:1
+Total Level-Site run-time took 887.371868 ms
+Local Test: 127.0.0.1:9004
+Client connected to level 4
+Ready to accept connections at: 9004
+j=0
+j=1
+Comparison took 0.026911 ms
+j=2
+Comparison took 0.033264 ms
+Training Successful on port:9005
+Ready to accept connections at: 9005
+training level-site 6 on port:9006
+Modified Protocol 3 selected
+New index:1
+Total Level-Site run-time took 947.403390 ms
+Local Test: 127.0.0.1:9005
+Client connected to level 5
+Ready to accept connections at: 9005
+j=0
+j=1
+Comparison took 0.021619 ms
+New index:1
+Total Level-Site run-time took 568.262802 ms
+Local Test: 127.0.0.1:9006
+Client connected to level 6
+Training Successful on port:9006
+Ready to accept connections at: 9006
+training level-site 7 on port:9007
+Ready to accept connections at: 9006
+j=0
+Comparison took 0.023738 ms
+New index:0
+Total Level-Site run-time took 540.306499 ms
+Local Test: 127.0.0.1:9007
+Client connected to level 7
+Training Successful on port:9007
+Ready to accept connections at: 9007
+training level-site 8 on port:9008
+Ready to accept connections at: 9007
+j=0
+Terminal leaf:AV6kc4FSou27HtnaU+EkA3hZE503GMUVn/EHPyxdCVQ=
+Total Level-Site run-time took 44.395579 ms
+The Classification is: tested_positive (4.0)
+It took 6254.945154 ms to classify
+Training Successful on port:9008
+Ready to accept connections at: 9008
+training level-site 9 on port:9009
+Training Successful on port:9009
+Ready to accept connections at: 9009
+Server Stopped on port 9000
+Server Stopped on port 9003
+Server Stopped on port 9001
+Server Stopped on port 9004
+Server Stopped on port 9005
+Server Stopped on port 9002
+Server Stopped on port 9007
+Server Stopped on port 9009
+Deleted the file: dgk
+Server Stopped on port 9006
+Deleted the file: dgk.pub
+Server Stopped on port 9008
+Deleted the file: paillier
+Deleted the file: paillier.pub
+Deleted the file: classes.txt
+tested_positive (4.0) =!= tested_positive (4.0)
+data/hypothyroid.arff
+Ready to accept connections at: 9000
+Ready to accept connections at: 9001
+Ready to accept connections at: 9002
+Ready to accept connections at: 9003
+Ready to accept connections at: 9004
+Ready to accept connections at: 9005
+Ready to accept connections at: 9006
+Ready to accept connections at: 9007
+Ready to accept connections at: 9008
+Ready to accept connections at: 9009
+Need to generate keys...
+Generating Keys...
+Completed generating vp, vq
+Can't generate image, so skip for now...
+Server ready to get public keys from client
+While Loop 1: n, p and q is generated.
+While loop 2: h is generated
+While loop 3: g is generated
+Generating hashmaps...
+FINISHED WITH DGK KEY GENERATION in 5 seconds!
+Paillier Keys have 2048 bits
+Completed building Paillier Key Pair!
+Initial value:7
+Value to be compared with:700
+Initial value:65
+Value to be compared with:6500
+Initial value:1
+Value to be compared with:100
+Initial value:0
+Value to be compared with:0
+Initial value:1
+Value to be compared with:100
+Initial value:0
+Value to be compared with:0
+Initial value:2.1
+Value to be compared with:210
+Initial value:40
+Value to be compared with:4000
+Initial value:1
+Value to be compared with:100
+Connecting to 127.0.0.1:10000
+Server collected keys from client
+Server trained DT and created level-sites
+Server sent the leaves back to the client
+training level-site 0 on port:9000
+Training Successful on port:9000
+Ready to accept connections at: 9000
+training level-site 1 on port:9001
+Training Successful on port:9001
+Ready to accept connections at: 9001
+training level-site 2 on port:9002
+Local Test: 127.0.0.1:9000
+Client connected to level 0
+Ready to accept connections at: 9000
+j=0
+Comparison took 0.020730 ms
+j=1
+Comparison took 0.017745 ms
+Modified Protocol 3 selected
+New index:0
+Total Level-Site run-time took 927.971726 ms
+Local Test: 127.0.0.1:9001
+Client connected to level 1
+Ready to accept connections at: 9001
+Training Successful on port:9002
+Ready to accept connections at: 9002
+training level-site 3 on port:9003
+j=0
+j=1
+Comparison took 0.017527 ms
+j=2
+Comparison took 0.030747 ms
+Modified Protocol 3 selected
+New index:1
+Total Level-Site run-time took 959.988571 ms
+Local Test: 127.0.0.1:9002
+Client connected to level 2
+Ready to accept connections at: 9002
+j=0
+j=1
+j=2
+Comparison took 0.019426 ms
+Training Successful on port:9003
+Ready to accept connections at: 9003
+training level-site 4 on port:9004
+New index:1
+Total Level-Site run-time took 563.524872 ms
+Local Test: 127.0.0.1:9003
+Client connected to level 3
+Ready to accept connections at: 9003
+j=0
+j=1
+j=2
+j=3
+Comparison took 0.020447 ms
+New index:2
+Total Level-Site run-time took 592.651998 ms
+Local Test: 127.0.0.1:9004
+Client connected to level 4
+Training Successful on port:9004
+Ready to accept connections at: 9004
+training level-site 5 on port:9005
+Ready to accept connections at: 9004
+j=0
+j=1
+j=2
+j=3
+j=4
+Comparison took 0.023262 ms
+New index:2
+Total Level-Site run-time took 528.722455 ms
+Local Test: 127.0.0.1:9005
+Client connected to level 5
+Training Successful on port:9005
+Ready to accept connections at: 9005
+training level-site 6 on port:9006
+Ready to accept connections at: 9005
+j=0
+j=1
+j=2
+j=3
+j=4
+j=5
+j=6
+Comparison took 0.019725 ms
+New index:4
+Total Level-Site run-time took 564.885870 ms
+Local Test: 127.0.0.1:9006
+Client connected to level 6
+Training Successful on port:9006
+Ready to accept connections at: 9006
+training level-site 7 on port:9007
+Ready to accept connections at: 9006
+j=0
+j=1
+j=2
+j=3
+j=4
+j=5
+Comparison took 0.027351 ms
+New index:4
+Total Level-Site run-time took 616.634386 ms
+Local Test: 127.0.0.1:9007
+Client connected to level 7
+Training Successful on port:9007
+Ready to accept connections at: 9007
+training level-site 8 on port:9008
+Ready to accept connections at: 9007
+j=0
+j=1
+j=2
+Comparison took 0.033714 ms
+New index:2
+Total Level-Site run-time took 577.317357 ms
+Local Test: 127.0.0.1:9008
+Client connected to level 8
+Training Successful on port:9008
+Ready to accept connections at: 9008
+Ready to accept connections at: 9008
+j=0
+Terminal leaf:hjrVER/dEeHq3IKammlRsDqHLrPawnmslmr3t8BSIwc=
+Total Level-Site run-time took 43.954332 ms
+The Classification is: negative (2.0/1.0)
+It took 7417.587086 ms to classify
+Server Stopped on port 9001
+Server Stopped on port 9000
+Server Stopped on port 9003
+Server Stopped on port 9004
+Server Stopped on port 9005
+Deleted the file: dgk
+Server Stopped on port 9002
+Server Stopped on port 9006
+Server Stopped on port 9009
+Deleted the file: dgk.pub
+Server Stopped on port 9008
+Deleted the file: paillier
+Deleted the file: paillier.pub
+Deleted the file: classes.txt
+negative (2.0/1.0) =!= negative (2.0/1.0)
+data/iris.arff
+Server Stopped on port 9007
+Ready to accept connections at: 9000
+Ready to accept connections at: 9001
+Ready to accept connections at: 9002
+Ready to accept connections at: 9003
+Ready to accept connections at: 9004
+Ready to accept connections at: 9005
+Ready to accept connections at: 9006
+Ready to accept connections at: 9007
+Ready to accept connections at: 9008
+Ready to accept connections at: 9009
+Need to generate keys...
+Generating Keys...
+Completed generating vp, vq
+Can't generate image, so skip for now...
+Server ready to get public keys from client
+While Loop 1: n, p and q is generated.
+While loop 2: h is generated
+While loop 3: g is generated
+Generating hashmaps...
+FINISHED WITH DGK KEY GENERATION in 4 seconds!
+Paillier Keys have 2048 bits
+Completed building Paillier Key Pair!
+Initial value:1.0
+Value to be compared with:100
+Initial value:5
+Value to be compared with:500
+Connecting to 127.0.0.1:10000
+Server collected keys from client
+Server trained DT and created level-sites
+Server sent the leaves back to the client
+training level-site 0 on port:9000
+Training Successful on port:9000
+Ready to accept connections at: 9000
+training level-site 1 on port:9001
+Local Test: 127.0.0.1:9000
+Client connected to level 0
+Ready to accept connections at: 9000
+Training Successful on port:9001
+Ready to accept connections at: 9001
+training level-site 2 on port:9002
+j=0
+Comparison took 0.021658 ms
+j=1
+Comparison took 0.016142 ms
+Modified Protocol 3 selected
+New index:0
+Total Level-Site run-time took 922.436526 ms
+Local Test: 127.0.0.1:9001
+Client connected to level 1
+Ready to accept connections at: 9001
+j=0
+j=1
+Comparison took 0.018958 ms
+Training Successful on port:9002
+Ready to accept connections at: 9002
+training level-site 3 on port:9003
+New index:1
+Total Level-Site run-time took 585.279849 ms
+Local Test: 127.0.0.1:9002
+Client connected to level 2
+Ready to accept connections at: 9002
+j=0
+Comparison took 0.021497 ms
+j=1
+Comparison took 0.025759 ms
+Training Successful on port:9003
+Ready to accept connections at: 9003
+training level-site 4 on port:9004
+Modified Protocol 3 selected
+New index:0
+Total Level-Site run-time took 951.754689 ms
+Local Test: 127.0.0.1:9003
+Client connected to level 3
+Ready to accept connections at: 9003
+j=0
+j=1
+Comparison took 0.022727 ms
+New index:1
+Total Level-Site run-time took 563.708245 ms
+Local Test: 127.0.0.1:9004
+Client connected to level 4
+Training Successful on port:9004
+Ready to accept connections at: 9004
+Ready to accept connections at: 9004
+j=0
+Terminal leaf:0x/i3GCXeqYPfF+5Hmunj6X7gQez3T3VYAii4qnL3HA=
+Total Level-Site run-time took 41.694298 ms
+The Classification is: Iris-virginica (3.0)
+It took 3216.029776 ms to classify
+Server Stopped on port 9000
+Server Stopped on port 9001
+Server Stopped on port 9004
+Server Stopped on port 9003
+Server Stopped on port 9006
+Server Stopped on port 9007
+Server Stopped on port 9008
+Server Stopped on port 9005
+Deleted the file: dgk
+Server Stopped on port 9009
+Server Stopped on port 9002
+Deleted the file: dgk.pub
+Deleted the file: paillier
+Deleted the file: paillier.pub
+Deleted the file: classes.txt
+Iris-virginica (3.0) =!= Iris-virginica (3.0)
+data/iris2D.arff
+Ready to accept connections at: 9000
+Ready to accept connections at: 9001
+Ready to accept connections at: 9002
+Ready to accept connections at: 9003
+Ready to accept connections at: 9004
+Ready to accept connections at: 9005
+Ready to accept connections at: 9006
+Ready to accept connections at: 9007
+Ready to accept connections at: 9008
+Ready to accept connections at: 9009
+Need to generate keys...
+Generating Keys...
+Completed generating vp, vq
+Can't generate image, so skip for now...
+Server ready to get public keys from client
+While Loop 1: n, p and q is generated.
+While loop 2: h is generated
+While loop 3: g is generated
+Generating hashmaps...
+FINISHED WITH DGK KEY GENERATION in 4 seconds!
+Paillier Keys have 2048 bits
+Completed building Paillier Key Pair!
+Initial value:0.7
+Value to be compared with:70
+Initial value:4
+Value to be compared with:400
+Connecting to 127.0.0.1:10000
+Server collected keys from client
+Server trained DT and created level-sites
+Server sent the leaves back to the client
+training level-site 0 on port:9000
+Training Successful on port:9000
+Ready to accept connections at: 9000
+training level-site 1 on port:9001
+Local Test: 127.0.0.1:9000
+Client connected to level 0
+Training Successful on port:9001
+Ready to accept connections at: 9001
+training level-site 2 on port:9002
+Ready to accept connections at: 9000
+j=0
+Comparison took 0.023305 ms
+j=1
+Comparison took 0.022526 ms
+Modified Protocol 3 selected
+New index:0
+Total Level-Site run-time took 923.708433 ms
+Local Test: 127.0.0.1:9001
+Client connected to level 1
+Ready to accept connections at: 9001
+Training Successful on port:9002
+Ready to accept connections at: 9002
+training level-site 3 on port:9003
+j=0
+j=1
+Comparison took 0.020063 ms
+New index:1
+Total Level-Site run-time took 560.472277 ms
+Local Test: 127.0.0.1:9002
+Client connected to level 2
+Ready to accept connections at: 9002
+j=0
+Comparison took 0.020546 ms
+Training Successful on port:9003
+Ready to accept connections at: 9003
+training level-site 4 on port:9004
+New index:0
+Total Level-Site run-time took 573.080717 ms
+Local Test: 127.0.0.1:9003
+Client connected to level 3
+Ready to accept connections at: 9003
+j=0
+Terminal leaf:lOkNN7mg6zjZ62SMDxD2hDRSXaoeK4Xs5gEhDTRxWtU=
+Total Level-Site run-time took 41.612819 ms
+The Classification is: Iris-versicolor (48.0/1.0)
+It took 2236.774725 ms to classify
+Training Successful on port:9004
+Ready to accept connections at: 9004
+Server Stopped on port 9001
+Server Stopped on port 9002
+Server Stopped on port 9003
+Server Stopped on port 9004
+Server Stopped on port 9007
+Server Stopped on port 9006
+Server Stopped on port 9005
+Deleted the file: dgk
+Server Stopped on port 9000
+Server Stopped on port 9008
+Server Stopped on port 9009
+Deleted the file: dgk.pub
+Deleted the file: paillier
+Deleted the file: paillier.pub
+Deleted the file: classes.txt
+Iris-versicolor (48.0/1.0) =!= Iris-versicolor (48.0/1.0)
+data/labor.arff
+Ready to accept connections at: 9000
+Ready to accept connections at: 9001
+Ready to accept connections at: 9002
+Ready to accept connections at: 9003
+Ready to accept connections at: 9004
+Ready to accept connections at: 9005
+Ready to accept connections at: 9006
+Ready to accept connections at: 9007
+Ready to accept connections at: 9008
+Ready to accept connections at: 9009
+Need to generate keys...
+Generating Keys...
+Completed generating vp, vq
+Can't generate image, so skip for now...
+Server ready to get public keys from client
+While Loop 1: n, p and q is generated.
+While loop 2: h is generated
+While loop 3: g is generated
+Generating hashmaps...
+FINISHED WITH DGK KEY GENERATION in 4 seconds!
+Paillier Keys have 2048 bits
+Completed building Paillier Key Pair!
+Initial value:5
+Value to be compared with:500
+Initial value:1
+Value to be compared with:100
+Initial value:9
+Value to be compared with:900
+Initial value:1
+Value to be compared with:100
+Initial value:35
+Value to be compared with:3500
+Connecting to 127.0.0.1:10000
+Server collected keys from client
+Server trained DT and created level-sites
+Server sent the leaves back to the client
+training level-site 0 on port:9000
+Training Successful on port:9000
+Ready to accept connections at: 9000
+training level-site 1 on port:9001
+Local Test: 127.0.0.1:9000
+Client connected to level 0
+Ready to accept connections at: 9000
+j=0
+Comparison took 0.035495 ms
+Training Successful on port:9001
+Ready to accept connections at: 9001
+training level-site 2 on port:9002
+j=1
+Comparison took 0.017128 ms
+Modified Protocol 3 selected
+New index:0
+Total Level-Site run-time took 921.499626 ms
+Local Test: 127.0.0.1:9001
+Client connected to level 1
+Ready to accept connections at: 9001
+j=0
+j=1
+Comparison took 0.021890 ms
+Training Successful on port:9002
+Ready to accept connections at: 9002
+training level-site 3 on port:9003
+New index:1
+Total Level-Site run-time took 635.376509 ms
+Local Test: 127.0.0.1:9002
+Client connected to level 2
+Ready to accept connections at: 9002
+j=0
+Comparison took 0.031878 ms
+Training Successful on port:9003
+Ready to accept connections at: 9003
+training level-site 4 on port:9004
+New index:0
+Total Level-Site run-time took 532.143750 ms
+Local Test: 127.0.0.1:9003
+Client connected to level 3
+Ready to accept connections at: 9003
+j=0
+Comparison took 0.021975 ms
+Shouldn't be here: x > y bits
+j=1
+Comparison took 0.029549 ms
+Modified Protocol 3 selected
+New index:0
+Total Level-Site run-time took 799.844676 ms
+Local Test: 127.0.0.1:9004
+Client connected to level 4
+Training Successful on port:9004
+Ready to accept connections at: 9004
+Ready to accept connections at: 9004
+j=0
+j=1
+Terminal leaf:RjZRkAIibEbSz8jrL//uz5DcH2nKTGxs9ZyvEXcDRFU=
+Total Level-Site run-time took 41.695832 ms
+The Classification is: good (3.99)
+It took 3170.927423 ms to classify
+Server Stopped on port 9001
+Server Stopped on port 9003
+Server Stopped on port 9005
+Server Stopped on port 9006
+Server Stopped on port 9007
+Server Stopped on port 9008
+Deleted the file: dgk
+Server Stopped on port 9004
+Server Stopped on port 9009
+Deleted the file: dgk.pub
+Server Stopped on port 9000
+Deleted the file: paillier
+Server Stopped on port 9002
+Deleted the file: paillier.pub
+Deleted the file: classes.txt
+good (3.99) =!= good (3.99)
+data/hypothyroid.arff
+Ready to accept connections at: 9000
+Ready to accept connections at: 9001
+Ready to accept connections at: 9002
+Ready to accept connections at: 9003
+Ready to accept connections at: 9004
+Ready to accept connections at: 9005
+Ready to accept connections at: 9006
+Ready to accept connections at: 9007
+Ready to accept connections at: 9008
+Ready to accept connections at: 9009
+Need to generate keys...
+Generating Keys...
+Completed generating vp, vq
+Can't generate image, so skip for now...
+Server ready to get public keys from client
+While Loop 1: n, p and q is generated.
+While loop 2: h is generated
+While loop 3: g is generated
+Generating hashmaps...
+FINISHED WITH DGK KEY GENERATION in 5 seconds!
+Paillier Keys have 2048 bits
+Completed building Paillier Key Pair!
+Initial value:5
+Value to be compared with:500
+Initial value:65
+Value to be compared with:6500
+Initial value:1
+Value to be compared with:100
+Initial value:0
+Value to be compared with:0
+Initial value:1
+Value to be compared with:100
+Initial value:0
+Value to be compared with:0
+Initial value:2.1
+Value to be compared with:210
+Initial value:40
+Value to be compared with:4000
+Initial value:1
+Value to be compared with:100
+Connecting to 127.0.0.1:10000
+Server collected keys from client
+Server trained DT and created level-sites
+Server sent the leaves back to the client
+training level-site 0 on port:9000
+Training Successful on port:9000
+Ready to accept connections at: 9000
+training level-site 1 on port:9001
+Local Test: 127.0.0.1:9000
+Client connected to level 0
+Ready to accept connections at: 9000
+j=0
+Comparison took 0.022856 ms
+Training Successful on port:9001
+Ready to accept connections at: 9001
+training level-site 2 on port:9002
+New index:0
+Total Level-Site run-time took 537.895530 ms
+Local Test: 127.0.0.1:9001
+Client connected to level 1
+Ready to accept connections at: 9001
+j=0
+Terminal leaf:PZaEi00JiyzN+sKWWtUeZoWf3Jx4lRXz8aNIEPVR5d4=
+Total Level-Site run-time took 44.446935 ms
+The Classification is: negative (3366.31/2.0)
+It took 625.380804 ms to classify
+Training Successful on port:9002
+Ready to accept connections at: 9002
+training level-site 3 on port:9003
+Training Successful on port:9003
+Ready to accept connections at: 9003
+training level-site 4 on port:9004
+Training Successful on port:9004
+Ready to accept connections at: 9004
+training level-site 5 on port:9005
+Training Successful on port:9005
+Ready to accept connections at: 9005
+training level-site 6 on port:9006
+Training Successful on port:9006
+Ready to accept connections at: 9006
+training level-site 7 on port:9007
+Training Successful on port:9007
+Ready to accept connections at: 9007
+training level-site 8 on port:9008
+Training Successful on port:9008
+Server Stopped on port 9000
+Server Stopped on port 9001
+Server Stopped on port 9003
+Server Stopped on port 9004
+Deleted the file: dgk
+Server Stopped on port 9002
+Server Stopped on port 9005
+Deleted the file: dgk.pub
+Server Stopped on port 9006
+Deleted the file: paillier
+Deleted the file: paillier.pub
+Server Stopped on port 9007
+Deleted the file: classes.txt
+Server Stopped on port: 9008
+negative (3366.31/2.0) =!= negative (3366.31/2.0)
+Server Stopped on port 9009
+Time to start up: 16583.393366
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

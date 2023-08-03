@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>level_order_site.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ppdt</a> &gt; <a href="index.source.html" class="el_package">weka.finito.structs</a> &gt; <span class="el_source">level_order_site.java</span></div><h1>level_order_site.java</h1><pre class="source lang-java linenums">package weka.finito.structs;
+
+import security.dgk.DGKPublicKey;
+import security.paillier.PaillierPublicKey;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author Andrew Quijano
+ * This class contains all the necessary information for a Level-site to complete evaluation
+ */
+
+public final class level_order_site implements Serializable, Comparable&lt;level_order_site&gt; {
+
+	private static final long serialVersionUID = 575566807906351024L;
+<span class="fc" id="L18">	private int index = 0;</span>
+    private int next_index;
+    private final int level;
+
+	public final PaillierPublicKey paillier_public_key;
+	public final DGKPublicKey dgk_public_key;
+    
+<span class="fc" id="L25">    private final List&lt;NodeInfo&gt; node_level_data = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L27">	public level_order_site(int level, PaillierPublicKey paillier_public_key, DGKPublicKey dgk_public_key) {</span>
+<span class="fc" id="L28">		this.level = level;</span>
+<span class="fc" id="L29">		this.paillier_public_key = paillier_public_key;</span>
+<span class="fc" id="L30">		this.dgk_public_key = dgk_public_key;</span>
+<span class="fc" id="L31">	}</span>
+
+	public List&lt;NodeInfo&gt; get_node_data() {
+<span class="fc" id="L34">    	return this.node_level_data;</span>
+    }
+
+    public void set_current_index(int index) {
+<span class="fc" id="L38">    	this.index = index;</span>
+<span class="fc" id="L39">    }</span>
+    
+    public void set_next_index(int next_index) {
+<span class="fc" id="L42">    	this.next_index = next_index;</span>
+<span class="fc" id="L43">    }</span>
+    
+    public int get_next_index() {
+<span class="fc" id="L46">    	return this.next_index;</span>
+    }
+    
+    public int get_current_index() {
+<span class="fc" id="L50">    	return this.index;</span>
+    }
+    
+    public void append_data(NodeInfo info) {
+<span class="fc" id="L54">    	node_level_data.add(info);</span>
+<span class="fc" id="L55">    }</span>
+    
+    public String toString() {
+<span class="nc" id="L58">    	StringBuilder output = new StringBuilder();</span>
+<span class="nc" id="L59">    	int num = 0;</span>
+<span class="nc" id="L60">    	output.append(&quot;level: &quot;);</span>
+<span class="nc" id="L61">    	output.append(this.level);</span>
+<span class="nc" id="L62">    	output.append('\n');</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">    	for (NodeInfo i: node_level_data) {</span>
+<span class="nc" id="L64">    		output.append(&quot;Index &quot;);</span>
+<span class="nc" id="L65">    		output.append(num);</span>
+<span class="nc" id="L66">    		output.append('\n');</span>
+<span class="nc" id="L67">    		output.append(i.toString());</span>
+<span class="nc" id="L68">    		output.append('\n');</span>
+<span class="nc" id="L69">    		num++;</span>
+<span class="nc" id="L70">    	}</span>
+<span class="nc" id="L71">    	return output.toString();</span>
+    }
+
+	public int compareTo(level_order_site o) {
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">		if (this.node_level_data.size() == o.node_level_data.size()) {</span>
+<span class="fc bfc" id="L76" title="All 2 branches covered.">			for (int i = 0; i &lt; node_level_data.size(); i++) {</span>
+<span class="fc" id="L77">				NodeInfo left = this.node_level_data.get(i);</span>
+<span class="fc" id="L78">				NodeInfo right = o.node_level_data.get(i);</span>
+<span class="fc" id="L79">				int comparison = left.compareTo(right);</span>
+<span class="pc bpc" id="L80" title="1 of 2 branches missed.">				if (comparison != 0) {</span>
+<span class="nc" id="L81">					return comparison;</span>
+				}
+			}
+<span class="fc" id="L84">			return 0;</span>
+		}
+<span class="nc bnc" id="L86" title="All 2 branches missed.">		else if (this.node_level_data.size() &gt; o.node_level_data.size()) {</span>
+<span class="nc" id="L87">			return 1;</span>
+		}
+		else {
+<span class="nc" id="L90">			return -1;</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

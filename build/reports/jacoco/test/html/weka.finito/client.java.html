@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>client.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ppdt</a> &gt; <a href="index.source.html" class="el_package">weka.finito</a> &gt; <span class="el_source">client.java</span></div><h1>client.java</h1><pre class="source lang-java linenums">package weka.finito;
+
+import java.io.*;
+import java.math.BigInteger;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Hashtable;
+
+import java.lang.System;
+
+import security.dgk.DGKKeyPairGenerator;
+import security.dgk.DGKOperations;
+import security.dgk.DGKPrivateKey;
+import security.dgk.DGKPublicKey;
+import security.misc.HomomorphicException;
+import security.paillier.PaillierCipher;
+import security.paillier.PaillierKeyPairGenerator;
+import security.paillier.PaillierPrivateKey;
+import security.paillier.PaillierPublicKey;
+import security.socialistmillionaire.bob;
+import security.socialistmillionaire.bob_veugen;
+import weka.finito.structs.BigIntegers;
+
+<span class="fc" id="L29">public final class client implements Runnable {</span>
+<span class="pc" id="L30">	private final String classes_file = &quot;classes.txt&quot;;</span>
+	private final String features_file;
+	private final int key_size;
+	private final int precision;
+
+	private final String [] level_site_ips;
+	private final int [] level_site_ports;
+	private final int port;
+
+<span class="pc" id="L39">	private String classification = null;</span>
+
+	private KeyPair dgk;
+	private KeyPair paillier;
+<span class="pc" id="L43">	private Hashtable&lt;String, BigIntegers&gt; feature = null;</span>
+<span class="pc" id="L44">	private String next_index = null;</span>
+<span class="pc" id="L45">	private String iv = null;</span>
+<span class="pc" id="L46">	private boolean classification_complete = false;</span>
+	private String [] classes;
+
+	private DGKPublicKey dgk_public_key;
+	private PaillierPublicKey paillier_public_key;
+	private DGKPrivateKey dgk_private_key;
+	private PaillierPrivateKey paillier_private_key;
+<span class="pc" id="L53">	private final HashMap&lt;String, String&gt; hashed_classification = new HashMap&lt;&gt;();</span>
+	private final String server_ip;
+	private final int server_port;
+
+    //For k8s deployment.
+    public static void main(String[] args) {
+        // Declare variables needed.
+<span class="nc" id="L60">        int key_size = -1;</span>
+<span class="nc" id="L61">        int precision = -1;</span>
+<span class="nc" id="L62">		int port = -1;</span>
+        String level_site_string;
+		String server_ip;
+
+        // Read in our environment variables.
+<span class="nc" id="L67">        level_site_string = System.getenv(&quot;LEVEL_SITE_DOMAINS&quot;);</span>
+<span class="nc bnc" id="L68" title="All 4 branches missed.">        if(level_site_string == null || level_site_string.isEmpty()) {</span>
+<span class="nc" id="L69">            System.out.println(&quot;No level site domains provided.&quot;);</span>
+<span class="nc" id="L70">            System.exit(1);</span>
+        }
+<span class="nc" id="L72">        String[] level_domains = level_site_string.split(&quot;,&quot;);</span>
+
+        try {
+<span class="nc" id="L75">            port = Integer.parseInt(System.getenv(&quot;PORT_NUM&quot;));</span>
+<span class="nc" id="L76">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L77">            System.out.println(&quot;No port provided for the Level Sites.&quot;);</span>
+<span class="nc" id="L78">            System.exit(1);</span>
+<span class="nc" id="L79">        }</span>
+
+        try {
+<span class="nc" id="L82">            precision = Integer.parseInt(System.getenv(&quot;PRECISION&quot;));</span>
+<span class="nc" id="L83">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L84">            System.out.println(&quot;No Precision value provided.&quot;);</span>
+<span class="nc" id="L85">            System.exit(1);</span>
+<span class="nc" id="L86">        }</span>
+
+        try {
+<span class="nc" id="L89">            key_size = Integer.parseInt(System.getenv(&quot;PPDT_KEY_SIZE&quot;));</span>
+<span class="nc" id="L90">        } catch (NumberFormatException e) {</span>
+<span class="nc" id="L91">            System.out.println(&quot;No crypto key provided value provided.&quot;);</span>
+<span class="nc" id="L92">            System.exit(1);</span>
+<span class="nc" id="L93">        }</span>
+
+<span class="nc" id="L95">		server_ip = System.getenv(&quot;SERVER&quot;);</span>
+<span class="nc bnc" id="L96" title="All 4 branches missed.">		if(server_ip == null || server_ip.isEmpty()) {</span>
+<span class="nc" id="L97">			System.out.println(&quot;No server site domain provided.&quot;);</span>
+<span class="nc" id="L98">			System.exit(1);</span>
+		}
+
+<span class="nc" id="L101">		client test = null;</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">		if (args.length == 1) {</span>
+<span class="nc" id="L103">			test = new client(key_size, args[0], level_domains, port, precision,server_ip, port);</span>
+		}
+		else {
+<span class="nc" id="L106">			System.out.println(&quot;Missing Testing Data set as an argument parameter&quot;);</span>
+<span class="nc" id="L107">			System.exit(1);</span>
+		}
+<span class="nc" id="L109">		test.run();</span>
+<span class="nc" id="L110">        System.exit(0);</span>
+<span class="nc" id="L111">    }</span>
+
+	// For local host testing with GitHub Actions
+	public client(int key_size, String features_file, String [] level_site_ips, int [] level_site_ports,
+<span class="fc" id="L115">				  int precision, String server_ip, int server_port) {</span>
+<span class="fc" id="L116">		this.key_size = key_size;</span>
+<span class="fc" id="L117">		this.features_file = features_file;</span>
+<span class="fc" id="L118">		this.level_site_ips = level_site_ips;</span>
+<span class="fc" id="L119">		this.level_site_ports = level_site_ports;</span>
+<span class="fc" id="L120">		this.precision = precision;</span>
+<span class="fc" id="L121">		this.port = -1;</span>
+<span class="fc" id="L122">		this.server_ip = server_ip;</span>
+<span class="fc" id="L123">		this.server_port = server_port;</span>
+<span class="fc" id="L124">	}</span>
+
+	// Testing using Kubernetes
+	public client(int key_size, String features_file, String [] level_site_ips, int port,
+<span class="nc" id="L128">				  int precision, String server_ip, int server_port) {</span>
+<span class="nc" id="L129">		this.key_size = key_size;</span>
+<span class="nc" id="L130">		this.features_file = features_file;</span>
+<span class="nc" id="L131">		this.level_site_ips = level_site_ips;</span>
+<span class="nc" id="L132">		this.level_site_ports = null;</span>
+<span class="nc" id="L133">		this.precision = precision;</span>
+<span class="nc" id="L134">		this.port = port;</span>
+<span class="nc" id="L135">		this.server_ip = server_ip;</span>
+<span class="nc" id="L136">		this.server_port = server_port;</span>
+<span class="nc" id="L137">	}</span>
+
+	public void generate_keys() {
+		// Generate Key Pairs
+<span class="fc" id="L141">		DGKKeyPairGenerator p = new DGKKeyPairGenerator();</span>
+<span class="fc" id="L142">		p.initialize(key_size, null);</span>
+<span class="fc" id="L143">		dgk = p.generateKeyPair();</span>
+
+<span class="fc" id="L145">		PaillierKeyPairGenerator pa = new PaillierKeyPairGenerator();</span>
+<span class="fc" id="L146">		pa.initialize(key_size, null);</span>
+<span class="fc" id="L147">		paillier = pa.generateKeyPair();</span>
+
+<span class="fc" id="L149">		dgk_public_key = (DGKPublicKey) dgk.getPublic();</span>
+<span class="fc" id="L150">		paillier_public_key = (PaillierPublicKey) paillier.getPublic();</span>
+<span class="fc" id="L151">		dgk_private_key = (DGKPrivateKey) dgk.getPrivate();</span>
+<span class="fc" id="L152">		paillier_private_key = (PaillierPrivateKey) paillier.getPrivate();</span>
+<span class="fc" id="L153">	}</span>
+
+	public static String hash(String text) throws NoSuchAlgorithmException {
+<span class="fc" id="L156">		MessageDigest digest = MessageDigest.getInstance(&quot;SHA-256&quot;);</span>
+<span class="fc" id="L157">		byte[] hash = digest.digest(text.getBytes(StandardCharsets.UTF_8));</span>
+<span class="fc" id="L158">		return Base64.getEncoder().encodeToString(hash);</span>
+	}
+
+	private boolean need_keys() {
+		try {
+<span class="nc" id="L163">			dgk_public_key = DGKPublicKey.readKey(&quot;dgk.pub&quot;);</span>
+<span class="nc" id="L164">			paillier_public_key = PaillierPublicKey.readKey(&quot;paillier.pub&quot;);</span>
+<span class="nc" id="L165">			dgk_private_key = DGKPrivateKey.readKey(&quot;dgk&quot;);</span>
+<span class="nc" id="L166">			paillier_private_key = PaillierPrivateKey.readKey(&quot;paillier&quot;);</span>
+<span class="nc" id="L167">			dgk = new KeyPair(dgk_public_key, dgk_private_key);</span>
+<span class="nc" id="L168">			paillier = new KeyPair(paillier_public_key, paillier_private_key);</span>
+<span class="nc" id="L169">			classes = read_classes();</span>
+<span class="nc bnc" id="L170" title="All 2 branches missed.">			for (String aClass : classes) {</span>
+<span class="nc" id="L171">				hashed_classification.put(hash(aClass), aClass);</span>
+			}
+<span class="nc" id="L173">			return false;</span>
+		}
+<span class="fc" id="L175">		catch (NoSuchAlgorithmException | IOException | ClassNotFoundException e) {</span>
+<span class="fc" id="L176">			return true;</span>
+		}
+    }
+
+	private String [] read_classes() {
+		// Don't forget to remember the classes of DT as well
+<span class="nc" id="L182">		StringBuilder content = new StringBuilder();</span>
+		String line;
+
+<span class="nc" id="L185">		try (BufferedReader reader =</span>
+					 new BufferedReader(new FileReader(classes_file))) {
+<span class="nc bnc" id="L187" title="All 2 branches missed.">			while ((line = reader.readLine()) != null) {</span>
+<span class="nc" id="L188">				content.append(line);</span>
+<span class="nc" id="L189">				content.append(System.lineSeparator());</span>
+			}
+		}
+<span class="nc" id="L192">		catch (IOException e) {</span>
+<span class="nc" id="L193">			throw new RuntimeException(e);</span>
+<span class="nc" id="L194">		}</span>
+<span class="nc" id="L195">		return content.toString().split(System.lineSeparator());</span>
+	}
+
+	// Used for set-up
+	private void communicate_with_server_site(PaillierPublicKey paillier, DGKPublicKey dgk)
+			throws IOException, ClassNotFoundException {
+<span class="fc" id="L201">		System.out.println(&quot;Connecting to &quot; + server_ip + &quot;:&quot; + server_port);</span>
+<span class="fc" id="L202">		try (Socket server_site = new Socket(server_ip, server_port)) {</span>
+<span class="fc" id="L203">			ObjectOutputStream to_server_site = new ObjectOutputStream(server_site.getOutputStream());</span>
+<span class="fc" id="L204">			ObjectInputStream from_server_site = new ObjectInputStream(server_site.getInputStream());</span>
+
+			// Receive a message from the client to get their keys
+<span class="fc" id="L207">			to_server_site.writeObject(paillier);</span>
+<span class="fc" id="L208">			to_server_site.writeObject(dgk);</span>
+<span class="fc" id="L209">			to_server_site.flush();</span>
+
+			// Get leaves from Server-site
+<span class="fc" id="L212">			Object o = from_server_site.readObject();</span>
+<span class="fc" id="L213">			classes = (String []) o;</span>
+		}
+<span class="fc" id="L215">	}</span>
+
+	// Get Classification after Evaluation
+	public String getClassification() {
+<span class="fc" id="L219">		return this.classification;</span>
+	}
+
+
+	// Evaluation
+	private Hashtable&lt;String, BigIntegers&gt; read_features(String path,
+														PaillierPublicKey paillier_public_key,
+														DGKPublicKey dgk_public_key,
+														int precision)
+					throws IOException, HomomorphicException {
+
+		BigInteger integerValuePaillier;
+		BigInteger integerValueDGK;
+		int intermediateInteger;
+<span class="fc" id="L233">		Hashtable&lt;String, BigIntegers&gt; values = new Hashtable&lt;&gt;();</span>
+<span class="fc" id="L234">		try (BufferedReader br = new BufferedReader(new FileReader(path))) {</span>
+			String line;
+
+<span class="fc bfc" id="L237" title="All 2 branches covered.">			while ((line = br.readLine()) != null) {</span>
+				String key, value;
+<span class="fc" id="L239">				String[] split = line.split(&quot;\\t&quot;);</span>
+<span class="fc" id="L240">				key = split[0];</span>
+<span class="fc" id="L241">				value = split[1];</span>
+<span class="fc bfc" id="L242" title="All 4 branches covered.">				if (value.equals(&quot;t&quot;) || (value.equals(&quot;yes&quot;))) {</span>
+<span class="fc" id="L243">					value = &quot;1&quot;;</span>
+				}
+<span class="pc bpc" id="L245" title="1 of 4 branches missed.">				if (value.equals(&quot;f&quot;) || (value.equals(&quot;no&quot;))) {</span>
+<span class="fc" id="L246">					value = &quot;0&quot;;</span>
+				}
+<span class="fc bfc" id="L248" title="All 2 branches covered.">				if (value.equals(&quot;other&quot;)) {</span>
+<span class="fc" id="L249">					value = &quot;1&quot;;</span>
+				}
+<span class="fc" id="L251">				System.out.println(&quot;Initial value:&quot; + value);</span>
+<span class="fc" id="L252">				intermediateInteger = (int) (Double.parseDouble(value) * Math.pow(10, precision));</span>
+<span class="fc" id="L253">				System.out.println(&quot;Value to be compared with:&quot; + intermediateInteger);</span>
+<span class="fc" id="L254">				integerValuePaillier = PaillierCipher.encrypt(intermediateInteger, paillier_public_key);</span>
+<span class="fc" id="L255">				integerValueDGK = DGKOperations.encrypt(intermediateInteger, dgk_public_key);</span>
+<span class="fc" id="L256">				values.put(key, new BigIntegers(integerValuePaillier, integerValueDGK));</span>
+<span class="fc" id="L257">			}</span>
+<span class="fc" id="L258">			return values;</span>
+		}
+	}
+
+	// Function used to Evaluate
+	private void communicate_with_level_site(Socket level_site, bob client)
+			throws IOException, ClassNotFoundException, HomomorphicException {
+		// Communicate with each Level-Site
+		Object o;
+
+		// Create I/O streams
+<span class="fc" id="L269">		ObjectOutputStream to_level_site = new ObjectOutputStream(level_site.getOutputStream());</span>
+<span class="fc" id="L270">		ObjectInputStream from_level_site = new ObjectInputStream(level_site.getInputStream());</span>
+
+		// Send the encrypted data to Level-Site
+<span class="fc" id="L273">		to_level_site.writeObject(this.feature);</span>
+<span class="fc" id="L274">		to_level_site.flush();</span>
+
+		// Send the Public Keys using Alice and Bob
+<span class="fc" id="L277">		client.set_socket(level_site);</span>
+
+		// Send bool:
+		// 1- true, there is an encrypted index coming
+		// 2- false, there is NO encrypted index coming
+<span class="fc bfc" id="L282" title="All 2 branches covered.">		if (next_index == null) {</span>
+<span class="fc" id="L283">			to_level_site.writeBoolean(false);</span>
+		}
+		else {
+<span class="fc" id="L286">			to_level_site.writeBoolean(true);</span>
+<span class="fc" id="L287">			to_level_site.writeObject(next_index);</span>
+<span class="fc" id="L288">			to_level_site.writeObject(iv);</span>
+		}
+<span class="fc" id="L290">		to_level_site.flush();</span>
+
+		// Work with the comparison
+		int comparison_type;
+		while(true) {
+<span class="fc" id="L295">			comparison_type = from_level_site.readInt();</span>
+<span class="pc bpc" id="L296" title="1 of 2 branches missed.">			if (comparison_type == -2) {</span>
+<span class="nc" id="L297">				System.out.println(&quot;LEVEL-SITE DOESN'T HAVE DATA!!!&quot;);</span>
+<span class="nc" id="L298">				this.classification_complete = true;</span>
+<span class="nc" id="L299">				return;</span>
+			}
+<span class="fc bfc" id="L301" title="All 2 branches covered.">			else if (comparison_type == -1) {</span>
+<span class="fc" id="L302">				break;</span>
+			}
+<span class="fc bfc" id="L304" title="All 2 branches covered.">			else if (comparison_type == 0) {</span>
+<span class="fc" id="L305">				client.setDGKMode(false);</span>
+			}
+<span class="pc bpc" id="L307" title="1 of 2 branches missed.">			else if (comparison_type == 1) {</span>
+<span class="fc" id="L308">				client.setDGKMode(true);</span>
+			}
+<span class="fc" id="L310">			client.Protocol2();</span>
+		}
+
+		// Get boolean from level-site:
+		// true - get leaf value
+		// false - get encrypted AES index for next round
+<span class="fc" id="L316">		classification_complete = from_level_site.readBoolean();</span>
+<span class="fc" id="L317">		o = from_level_site.readObject();</span>
+<span class="fc bfc" id="L318" title="All 2 branches covered.">		if (classification_complete) {</span>
+<span class="pc bpc" id="L319" title="1 of 2 branches missed.">			if (o instanceof String) {</span>
+<span class="fc" id="L320">				classification = (String) o;</span>
+<span class="fc" id="L321">				classification = hashed_classification.get(classification);</span>
+			}
+		}
+		else {
+<span class="pc bpc" id="L325" title="1 of 2 branches missed.">			if (o instanceof String) {</span>
+<span class="fc" id="L326">				next_index = (String) o;</span>
+			}
+<span class="fc" id="L328">			o = from_level_site.readObject();</span>
+<span class="pc bpc" id="L329" title="1 of 2 branches missed.">			if (o instanceof String) {</span>
+<span class="fc" id="L330">				iv = (String) o;</span>
+			}
+		}
+<span class="fc" id="L333">	}</span>
+
+	// Function used to Evaluate
+	public void run() {
+<span class="fc" id="L337">		boolean talk_to_server_site = this.need_keys();</span>
+		bob_veugen client;
+		try {
+			// Don't regenerate keys if you are just using a different VALUES file
+<span class="pc bpc" id="L341" title="1 of 2 branches missed.">			if (talk_to_server_site) {</span>
+<span class="fc" id="L342">				System.out.println(&quot;Need to generate keys...&quot;);</span>
+<span class="fc" id="L343">				generate_keys();</span>
+			}
+			else {
+<span class="nc" id="L346">				System.out.println(&quot;I already read the keys from a file made from a previous run...&quot;);</span>
+			}
+<span class="fc" id="L348">			client = new bob_veugen(paillier, dgk, null);</span>
+
+<span class="fc" id="L350">			feature = read_features(features_file, paillier_public_key, dgk_public_key, precision);</span>
+
+			// Client needs to give server-site public key (to give to level-sites)
+			// Client needs to know all possible classes...
+<span class="pc bpc" id="L354" title="1 of 2 branches missed.">			if (talk_to_server_site) {</span>
+				// Don't send keys to server-site to ask for classes since now it is assumed level-sites are up
+<span class="fc" id="L356">				communicate_with_server_site(paillier_public_key, dgk_public_key);</span>
+<span class="fc bfc" id="L357" title="All 2 branches covered.">				for (String aClass : classes) {</span>
+<span class="fc" id="L358">					hashed_classification.put(hash(aClass), aClass);</span>
+				}
+				// Make sure level-sites got everything...
+<span class="fc" id="L361">				Thread.sleep(2000);</span>
+			}
+			else {
+<span class="nc" id="L364">				System.out.println(&quot;Not contacting server-site. Seems you just want to test on the&quot; +</span>
+						&quot; same PPDT but different VALUES&quot;);
+			}
+		}
+<span class="nc" id="L368">		catch (Exception e) {</span>
+<span class="nc" id="L369">			throw new RuntimeException(e);</span>
+<span class="fc" id="L370">		}</span>
+
+		int connection_port;
+<span class="fc" id="L373">		long start_time = System.nanoTime();</span>
+		try {
+
+<span class="pc bpc" id="L376" title="1 of 2 branches missed.">			for (int i = 0; i &lt; level_site_ips.length; i++) {</span>
+<span class="fc bfc" id="L377" title="All 2 branches covered.">				if (classification_complete) {</span>
+<span class="fc" id="L378">					break;</span>
+				}
+<span class="pc bpc" id="L380" title="1 of 2 branches missed.">				if (port == -1) {</span>
+<span class="pc bpc" id="L381" title="1 of 2 branches missed.">					assert level_site_ports != null;</span>
+<span class="fc" id="L382">					connection_port = level_site_ports[i];</span>
+<span class="fc" id="L383">					System.out.println(&quot;Local Test: &quot; + level_site_ips[i] + &quot;:&quot; + level_site_ports[i]);</span>
+				}
+				else {
+<span class="nc" id="L386">					connection_port = port;</span>
+				}
+
+<span class="fc" id="L389">				try(Socket level_site = new Socket(level_site_ips[i], connection_port)) {</span>
+<span class="fc" id="L390">					System.out.println(&quot;Client connected to level &quot; + i);</span>
+<span class="fc" id="L391">					communicate_with_level_site(level_site, client);</span>
+				}
+			}
+<span class="fc" id="L394">            long end_time = System.nanoTime();</span>
+<span class="fc" id="L395">			System.out.println(&quot;The Classification is: &quot; + classification);</span>
+<span class="fc" id="L396">			double run_time = (double) (end_time - start_time);</span>
+<span class="fc" id="L397">			run_time = run_time/1000000;</span>
+<span class="fc" id="L398">            System.out.printf(&quot;It took %f ms to classify\n&quot;, run_time);</span>
+		}
+<span class="nc" id="L400">		catch (Exception e) {</span>
+<span class="nc" id="L401">			throw new RuntimeException(e);</span>
+<span class="fc" id="L402">		}</span>
+
+		// At the end, write your keys...
+		try {
+<span class="fc" id="L406">			paillier_private_key.writeKey(&quot;paillier&quot;);</span>
+<span class="fc" id="L407">			dgk_public_key.writeKey(&quot;dgk.pub&quot;);</span>
+<span class="fc" id="L408">			paillier_public_key.writeKey(&quot;paillier.pub&quot;);</span>
+<span class="fc" id="L409">			dgk_private_key.writeKey(&quot;dgk&quot;);</span>
+<span class="nc" id="L410">		} catch (IOException e) {</span>
+<span class="nc" id="L411">			throw new RuntimeException(e);</span>
+<span class="fc" id="L412">		}</span>
+
+		// Remember the classes as well too...
+<span class="fc" id="L415">		try (BufferedWriter writer = new BufferedWriter(new FileWriter(classes_file, true))) {</span>
+<span class="fc bfc" id="L416" title="All 2 branches covered.">			for (String aClass: classes) {</span>
+<span class="fc" id="L417">				writer.write(aClass);</span>
+<span class="fc" id="L418">				writer.write(&quot;\n&quot;);</span>
+			}
+		}
+<span class="nc" id="L421">		catch (IOException e) {</span>
+<span class="nc" id="L422">			throw new RuntimeException(e);</span>
+<span class="fc" id="L423">		}</span>
+<span class="fc" id="L424">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

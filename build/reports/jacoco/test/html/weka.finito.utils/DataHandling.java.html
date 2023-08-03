@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DataHandling.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ppdt</a> &gt; <a href="index.source.html" class="el_package">weka.finito.utils</a> &gt; <span class="el_source">DataHandling.java</span></div><h1>DataHandling.java</h1><pre class="source lang-java linenums">package weka.finito.utils;
+
+import org.jetbrains.annotations.NotNull;
+import weka.core.Instances;
+import weka.core.converters.CSVLoader;
+import weka.core.converters.ConverterUtils;
+import weka.filters.Filter;
+import weka.filters.unsupervised.attribute.Remove;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+
+<span class="nc" id="L15">public class DataHandling {</span>
+
+    // Kick off Data Handling by reading the data set and splitting it.
+    // Question: Are we assuming all Data Providers know all classes??? Perhaps we can assume yes for now...
+    public static Instances @NotNull [] createPartitions(String fullDataSetPath, int noParties)
+            throws Exception {
+<span class="fc" id="L21">        Instances data = read_data(fullDataSetPath);</span>
+
+        //data.deleteWithMissingClass();
+        int numAttributes, noElementsForPartition, noElementsForLastPartition;
+
+<span class="fc" id="L26">        numAttributes = data.numAttributes();</span>
+<span class="fc" id="L27">        noElementsForPartition = numAttributes / noParties;</span>
+<span class="fc" id="L28">        noElementsForLastPartition = numAttributes;</span>
+
+        //System.out.println(&quot;First attribute:&quot;+data.attribute(0).name());
+        // TODO: Set as a parameter probably?
+<span class="fc" id="L32">        System.out.println(&quot;Last attribute:&quot; + data.attribute(numAttributes-1).name());</span>
+<span class="fc" id="L33">        Remove removeFilter = new Remove();</span>
+<span class="fc" id="L34">        Instances [] newData = new Instances[noParties];</span>
+<span class="fc" id="L35">        int [] indices = new int[numAttributes];</span>
+<span class="fc bfc" id="L36" title="All 2 branches covered.">        if (noElementsForPartition == 0){</span>
+<span class="fc" id="L37">            System.out.println(&quot;--&quot;);</span>
+<span class="fc bfc" id="L38" title="All 2 branches covered.">            for (int j = 0; j &lt; numAttributes; j++){</span>
+<span class="fc" id="L39">                indices[j] = j;</span>
+<span class="fc" id="L40">                System.out.print(indices[j] + &quot; &quot;);</span>
+            }
+<span class="fc" id="L42">            System.out.println();</span>
+<span class="fc" id="L43">            removeFilter.setAttributeIndicesArray(indices);</span>
+<span class="fc" id="L44">            removeFilter.setInvertSelection(true);</span>
+<span class="fc" id="L45">            removeFilter.setInputFormat(data);</span>
+<span class="fc" id="L46">            newData[0] = Filter.useFilter(data, removeFilter);</span>
+        }
+        else {
+
+<span class="fc bfc" id="L50" title="All 2 branches covered.">            for (int i=0; i&lt;noParties; i++) {</span>
+<span class="fc" id="L51">                System.out.println(&quot;--&quot;);</span>
+
+                //indices[0]=0;
+<span class="fc" id="L54">                indices[numAttributes - 1] = numAttributes - 1;</span>
+                int noElements;
+<span class="fc bfc" id="L56" title="All 2 branches covered.">                if (i != noParties - 1) {</span>
+<span class="fc" id="L57">                    noElements = noElementsForPartition;</span>
+<span class="fc" id="L58">                    noElementsForLastPartition -= noElements;</span>
+                }
+                else {
+<span class="fc" id="L61">                    noElements = noElementsForLastPartition - 2;</span>
+                }
+<span class="pc bpc" id="L63" title="1 of 2 branches missed.">                if (noElements != 0) {</span>
+                    //System.out.print(indices[0] + &quot; &quot;);
+<span class="fc bfc" id="L65" title="All 2 branches covered.">                    for (int j = 1; j &lt; noElements + 1; j++) {</span>
+<span class="fc" id="L66">                        indices[j] = i * noElementsForPartition + j;</span>
+<span class="fc" id="L67">                        System.out.print(indices[j] + &quot; &quot;);</span>
+                    }
+<span class="fc" id="L69">                    System.out.println(indices[numAttributes - 1] + &quot; &quot;);</span>
+                }
+<span class="fc" id="L71">                removeFilter.setAttributeIndicesArray(indices);</span>
+<span class="fc" id="L72">                removeFilter.setInvertSelection(true);</span>
+<span class="fc" id="L73">                removeFilter.setInputFormat(data);</span>
+<span class="fc" id="L74">                newData[i] = Filter.useFilter(data, removeFilter);</span>
+            }
+        }
+<span class="fc" id="L77">        return newData;</span>
+    }
+
+    // Read either ARFF or CSV file
+    public static Instances read_data(@NotNull String file) throws IOException {
+<span class="fc" id="L82">        Instances data = null;</span>
+<span class="pc bpc" id="L83" title="1 of 2 branches missed.">        if (file.endsWith(&quot;.csv&quot;)) {</span>
+            // If this is a .csv file
+<span class="nc" id="L85">            CSVLoader loader = new CSVLoader();</span>
+<span class="nc" id="L86">            loader.setSource(new File(file));</span>
+<span class="nc" id="L87">            data = loader.getDataSet();</span>
+<span class="nc" id="L88">        }</span>
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">        else if (file.endsWith(&quot;.arff&quot;)) {</span>
+            // If this is a .arff file
+<span class="fc" id="L91">            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {</span>
+<span class="fc" id="L92">                data = new Instances(reader);</span>
+            }
+        }
+<span class="fc" id="L95">        return data;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

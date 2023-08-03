@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>level_site_thread.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ppdt</a> &gt; <a href="index.source.html" class="el_package">weka.finito</a> &gt; <span class="el_source">level_site_thread.java</span></div><h1>level_site_thread.java</h1><pre class="source lang-java linenums">package weka.finito;
+
+import java.lang.System;
+
+import security.misc.HomomorphicException;
+import security.socialistmillionaire.alice;
+import security.socialistmillionaire.alice_veugen;
+import weka.finito.structs.BigIntegers;
+import weka.finito.structs.NodeInfo;
+import weka.finito.structs.level_order_site;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.math.BigInteger;
+import java.net.Socket;
+import java.util.Hashtable;
+import java.util.List;
+
+<span class="fc" id="L20">public class level_site_thread implements Runnable {</span>
+
+	private final Socket client_socket;
+	private ObjectInputStream fromClient;
+	private ObjectOutputStream toClient;
+
+<span class="fc" id="L26">	private level_order_site level_site_data = null;</span>
+
+<span class="fc" id="L28">	private alice Niu = null;</span>
+
+	private Hashtable&lt;String, BigIntegers&gt; encrypted_features;
+	private final AES crypto;
+
+<span class="fc" id="L33">	public level_site_thread(Socket client_socket, level_order_site level_site_data, AES crypto) {</span>
+<span class="fc" id="L34">		this.client_socket = client_socket;</span>
+<span class="fc" id="L35">		this.crypto = crypto;</span>
+
+		Object x;
+		try {
+<span class="fc" id="L39">			toClient = new ObjectOutputStream(this.client_socket.getOutputStream());</span>
+<span class="fc" id="L40">			fromClient = new ObjectInputStream(this.client_socket.getInputStream());</span>
+
+<span class="fc" id="L42">			x = fromClient.readObject();</span>
+<span class="fc bfc" id="L43" title="All 2 branches covered.">			if (x instanceof level_order_site) {</span>
+				// Traffic from Server. Level-Site alone will manage closing this.
+<span class="fc" id="L45">				this.level_site_data = (level_order_site) x;</span>
+				// System.out.println(&quot;Level-Site received training data on Port: &quot; + client_socket.getLocalPort());
+<span class="fc" id="L47">				this.toClient.writeBoolean(true);</span>
+<span class="fc" id="L48">				closeClientConnection();</span>
+<span class="pc bpc" id="L49" title="1 of 2 branches missed.">			} else if (x instanceof Hashtable) {</span>
+<span class="fc" id="L50">				encrypted_features = (Hashtable&lt;String, BigIntegers&gt;) x;</span>
+				// Have encrypted copy of thresholds if not done already for all nodes in level-site
+<span class="fc" id="L52">				this.level_site_data = level_site_data;</span>
+			} else {
+<span class="nc" id="L54">				System.out.println(&quot;Wrong Object Received: &quot; + x.getClass().toString());</span>
+<span class="nc" id="L55">				closeClientConnection();</span>
+			}
+<span class="nc" id="L57">		} catch (Exception e) {</span>
+<span class="nc" id="L58">			e.printStackTrace();</span>
+<span class="fc" id="L59">		}</span>
+<span class="fc" id="L60">	}</span>
+
+	public final level_order_site getLevelSiteParameters() {
+<span class="fc" id="L63">		return this.level_site_data;</span>
+	}
+
+	private void closeClientConnection() throws IOException {
+<span class="fc" id="L67">		toClient.close();</span>
+<span class="fc" id="L68">		fromClient.close();</span>
+<span class="pc bpc" id="L69" title="2 of 4 branches missed.">		if (this.client_socket != null &amp;&amp; this.client_socket.isConnected()) {</span>
+<span class="fc" id="L70">			this.client_socket.close();</span>
+		}
+<span class="fc" id="L72">	}</span>
+
+	// a - from CLIENT, should already be encrypted...
+	private boolean compare(NodeInfo ld, int comparisonType)
+			throws HomomorphicException, ClassNotFoundException, IOException {
+
+<span class="fc" id="L78">        long start_time = System.nanoTime();</span>
+
+<span class="fc" id="L80">		BigIntegers encrypted_values = this.encrypted_features.get(ld.variable_name);</span>
+<span class="fc" id="L81">		BigInteger encrypted_client_value = null;</span>
+<span class="fc" id="L82">		BigInteger encrypted_thresh = null;</span>
+
+        // Encrypt the thresh-hold correctly
+<span class="pc bpc" id="L85" title="1 of 6 branches missed.">        if ((comparisonType == 1) || (comparisonType == 2) || (comparisonType == 4)) {</span>
+<span class="fc" id="L86">			encrypted_thresh = ld.getPaillier();</span>
+<span class="fc" id="L87">			encrypted_client_value = encrypted_values.getIntegerValuePaillier();</span>
+<span class="fc" id="L88">            toClient.writeInt(0);</span>
+<span class="fc" id="L89">            Niu.setDGKMode(false);</span>
+        }
+<span class="pc bpc" id="L91" title="3 of 4 branches missed.">        else if ((comparisonType == 3) || (comparisonType == 5)) {</span>
+<span class="fc" id="L92">			encrypted_thresh = ld.getDGK();</span>
+<span class="fc" id="L93">			encrypted_client_value = encrypted_values.getIntegerValueDGK();</span>
+<span class="fc" id="L94">            toClient.writeInt(1);</span>
+<span class="fc" id="L95">            Niu.setDGKMode(true);</span>
+        }
+<span class="fc" id="L97">        toClient.flush();</span>
+<span class="pc bpc" id="L98" title="1 of 2 branches missed.">		assert encrypted_client_value != null;</span>
+<span class="fc" id="L99">        long stop_time = System.nanoTime();</span>
+
+<span class="fc" id="L101">		double run_time = (double) (stop_time - start_time);</span>
+<span class="fc" id="L102">		run_time = run_time / 1000000;</span>
+<span class="fc" id="L103">		System.out.printf(&quot;Comparison took %f ms\n&quot;, run_time);</span>
+<span class="pc bpc" id="L104" title="2 of 8 branches missed.">		if (((comparisonType == 1) &amp;&amp; (ld.threshold == 0))</span>
+				|| (comparisonType == 4) || (comparisonType == 5)) {
+<span class="fc" id="L106">			return Niu.Protocol2(encrypted_thresh, encrypted_client_value);</span>
+        }
+        else {
+<span class="fc" id="L109">			return Niu.Protocol2(encrypted_client_value, encrypted_thresh);</span>
+        }
+	}
+
+	// This will run the communication with client and next level site
+	public final void run() {
+		Object o;
+<span class="fc" id="L116">		String previous_index = null;</span>
+<span class="fc" id="L117">		String iv = null;</span>
+		boolean get_previous_index;
+<span class="fc" id="L119">		long start_time = System.nanoTime();</span>
+
+		try {
+<span class="fc" id="L122">			Niu = new alice_veugen();</span>
+<span class="fc" id="L123">			Niu.set_socket(client_socket);</span>
+<span class="pc bpc" id="L124" title="1 of 2 branches missed.">			if (this.level_site_data == null) {</span>
+<span class="nc" id="L125">				toClient.writeInt(-2);</span>
+<span class="nc" id="L126">				closeClientConnection();</span>
+<span class="nc" id="L127">				return;</span>
+			}
+
+<span class="fc" id="L130">			List&lt;NodeInfo&gt; node_level_data = this.level_site_data.get_node_data();</span>
+<span class="fc" id="L131">			Niu.setDGKPublicKey(this.level_site_data.dgk_public_key);</span>
+<span class="fc" id="L132">			Niu.setPaillierPublicKey(this.level_site_data.paillier_public_key);</span>
+
+<span class="fc" id="L134">			get_previous_index = fromClient.readBoolean();</span>
+<span class="fc bfc" id="L135" title="All 2 branches covered.">			if (get_previous_index) {</span>
+<span class="fc" id="L136">				o = fromClient.readObject();</span>
+<span class="pc bpc" id="L137" title="1 of 2 branches missed.">				if (o instanceof String) {</span>
+<span class="fc" id="L138">					previous_index = (String) o;</span>
+				}
+<span class="fc" id="L140">				o = fromClient.readObject();</span>
+<span class="pc bpc" id="L141" title="1 of 2 branches missed.">				if (o instanceof String) {</span>
+<span class="fc" id="L142">					iv = (String) o;</span>
+				}
+<span class="fc" id="L144">				previous_index = crypto.decrypt(previous_index, iv);</span>
+			}
+
+			// Level Data is the Node Data...
+<span class="fc bfc" id="L148" title="All 2 branches covered.">			if (previous_index != null) {</span>
+<span class="fc" id="L149">				this.level_site_data.set_current_index(Integer.parseInt(previous_index));</span>
+			}
+
+<span class="fc" id="L152">			boolean equalsFound = false;</span>
+<span class="fc" id="L153">			boolean inequalityHolds = false;</span>
+<span class="fc" id="L154">			boolean terminalLeafFound = false;</span>
+<span class="fc" id="L155">			int node_level_index = 0;</span>
+<span class="fc" id="L156">			int n = 0;</span>
+<span class="fc" id="L157">			int next_index = 0;</span>
+<span class="fc" id="L158">			NodeInfo ls = null;</span>
+			String encrypted_next_index;
+
+<span class="fc bfc" id="L161" title="All 4 branches covered.">			while ((!equalsFound) &amp;&amp; (!terminalLeafFound)) {</span>
+<span class="fc" id="L162">				ls = node_level_data.get(node_level_index);</span>
+<span class="fc" id="L163">				System.out.println(&quot;j=&quot; + node_level_index);</span>
+<span class="fc bfc" id="L164" title="All 2 branches covered.">				if (ls.isLeaf()) {</span>
+<span class="pc bpc" id="L165" title="1 of 4 branches missed.">					if (n == 2 * this.level_site_data.get_current_index() || n == 2 * this.level_site_data.get_current_index() + 1) {</span>
+<span class="fc" id="L166">						terminalLeafFound = true;</span>
+<span class="fc" id="L167">						System.out.println(&quot;Terminal leaf:&quot; + ls.getVariableName());</span>
+					}
+<span class="fc" id="L169">					n += 2;</span>
+				}
+				else {
+<span class="fc bfc" id="L172" title="All 4 branches covered.">					if ((n==2 * this.level_site_data.get_current_index() || n == 2 * this.level_site_data.get_current_index() + 1)) {</span>
+<span class="pc bpc" id="L173" title="1 of 2 branches missed.">						if (ls.comparisonType == 6) {</span>
+<span class="nc" id="L174">							boolean firstInequalityHolds = compare(ls, 3);</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">							if (firstInequalityHolds) {</span>
+<span class="nc" id="L176">								inequalityHolds = true;</span>
+							} else {
+<span class="nc" id="L178">								boolean secondInequalityHolds = compare(ls, 5);</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">								if (secondInequalityHolds) {</span>
+<span class="nc" id="L180">									inequalityHolds = true;</span>
+								}
+							}
+<span class="nc" id="L183">						} else {</span>
+<span class="fc" id="L184">							inequalityHolds = compare(ls, ls.comparisonType);</span>
+						}
+
+<span class="fc bfc" id="L187" title="All 2 branches covered.">						if (inequalityHolds) {</span>
+<span class="fc" id="L188">							equalsFound = true;</span>
+<span class="fc" id="L189">							this.level_site_data.set_next_index(next_index);</span>
+<span class="fc" id="L190">							System.out.println(&quot;New index:&quot; + this.level_site_data.get_current_index());</span>
+						}
+					}
+<span class="fc" id="L193">					n++;</span>
+<span class="fc" id="L194">					next_index++;</span>
+				}
+<span class="fc" id="L196">				node_level_index++;</span>
+			}
+
+			// Place -1 to break Protocol4 loop
+<span class="fc" id="L200">			toClient.writeInt(-1);</span>
+<span class="fc" id="L201">			toClient.flush();</span>
+
+<span class="fc bfc" id="L203" title="All 2 branches covered.">			if (terminalLeafFound) {</span>
+				// Tell the client the value
+<span class="fc" id="L205">				toClient.writeBoolean(true);</span>
+<span class="fc" id="L206">				toClient.writeObject(ls.getVariableName());</span>
+			}
+			else {
+<span class="fc" id="L209">				toClient.writeBoolean(false);</span>
+				// encrypt with AES, send to client which will send to next level-site
+<span class="fc" id="L211">				encrypted_next_index = crypto.encrypt(String.valueOf(this.level_site_data.get_next_index()));</span>
+<span class="fc" id="L212">				iv = crypto.getIV();</span>
+<span class="fc" id="L213">				toClient.writeObject(encrypted_next_index);</span>
+<span class="fc" id="L214">				toClient.writeObject(iv);</span>
+			}
+<span class="fc" id="L216">			long stop_time = System.nanoTime();</span>
+<span class="fc" id="L217">			double run_time = (double) (stop_time - start_time);</span>
+<span class="fc" id="L218">			run_time = run_time / 1000000;</span>
+<span class="fc" id="L219">			System.out.printf(&quot;Total Level-Site run-time took %f ms\n&quot;, run_time);</span>
+		}
+<span class="nc" id="L221">        catch (Exception e) {</span>
+<span class="nc" id="L222">			e.printStackTrace();</span>
+		}
+		finally {
+			try {
+<span class="fc" id="L226">				closeClientConnection();</span>
+<span class="nc" id="L227">			} catch (IOException e) {</span>
+<span class="nc" id="L228">				System.out.println(&quot;IO Exception in closing Level-Site Connection in Evaluation&quot;);</span>
+<span class="fc" id="L229">			}</span>
+		}
+<span class="fc" id="L231">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
