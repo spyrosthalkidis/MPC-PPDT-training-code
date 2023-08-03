@@ -1,0 +1,20 @@
+digraph J48Tree {
+N0 [label="petalwidth" ]
+N0->N1 [label="<= 0.6"]
+N1 [label="Iris-setosa (50.0)" shape=box style=filled ]
+N0->N2 [label="> 0.6"]
+N2 [label="petalwidth" ]
+N2->N3 [label="<= 1.7"]
+N3 [label="petallength" ]
+N3->N4 [label="<= 4.9"]
+N4 [label="Iris-versicolor (48.0/1.0)" shape=box style=filled ]
+N3->N5 [label="> 4.9"]
+N5 [label="petalwidth" ]
+N5->N6 [label="<= 1.5"]
+N6 [label="Iris-virginica (3.0)" shape=box style=filled ]
+N5->N7 [label="> 1.5"]
+N7 [label="Iris-versicolor (3.0/1.0)" shape=box style=filled ]
+N2->N8 [label="> 1.7"]
+N8 [label="Iris-virginica (46.0/1.0)" shape=box style=filled ]
+}
+
