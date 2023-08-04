@@ -76,7 +76,7 @@ public class SiteMain implements Runnable {
         for (int i=0; i<data.length; i++){
             GainRatioAttributeEval gainRatioAttributeEval=new GainRatioAttributeEval();
             gainRatioAttributeEval.buildEvaluator(data[i]);
-            gainRatios[i] = gainRatioAttributeEval.evaluateAttribute(i);
+            gainRatios[i] = gainRatioAttributeEval.evaluateAttribute(0);
         }
         return gainRatios;
     }
