@@ -8,6 +8,8 @@ import weka.core.Instances;
 import weka.core.Utils;
 import weka.finito.utils.DataHandling;
 
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.net.Socket;
@@ -87,8 +89,27 @@ public class SiteMain implements Runnable {
         double maxInfoGainRatio=0;
         this.hosts = hosts;
         this.ports = ports;
-        m_insts= DataHandling.createPartitions(fullDatasetPath, noParties);
-        m_localModel = m_toSelectModel.selectModel(m_insts[0]);
+
+
+        Instances[] mydata=new Instances[1];
+        m_insts= DataHandling.createPartitions(fullDatasetPath, noParties, mydata);
+        for (int i=0; i<noParties; i++){
+            Socket mysocket = new Socket(hosts[i], ports[i]);
+
+
+            ObjectOutputStream to_server = new ObjectOutputStream(mysocket.getOutputStream());
+            ObjectInputStream from_server = new ObjectInputStream(mysocket.getInputStream());
+
+
+            // Send the partitioned data to the corresponding DataProvider
+            to_server.writeObject(m_insts[i]);
+            to_server.flush();
+
+        }
+        Instances[] m_insts_union;
+
+        m_insts_union=mydata;
+        m_localModel = m_toSelectModel.selectModel(m_insts_union[0]);
         ppdt=new ClassifierTree(m_toSelectModel);
         BinC45ModelSelection j48_model = new BinC45ModelSelection(2, m_insts[0], true, false);
         j48 = new C45PruneableClassifierTree(j48_model, true, (float) 0.25, true, true, true);
