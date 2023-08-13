@@ -19,7 +19,7 @@ import static org.junit.Assert.assertEquals;
 
 public final class EvaluationTest {
 
-	private String [] level_site_ports_string;
+	private int [] level_site_ports;
 	private String [] level_site_ips;
 	private int levels;
 	private int key_size;
@@ -27,6 +27,7 @@ public final class EvaluationTest {
 	private String data_directory;
 	private int server_port;
 	private String server_ip;
+
 	private final static String [] delete_files = {"dgk", "dgk.pub", "paillier", "paillier.pub", "classes.txt"};
 	@Before
 	public void read_properties() throws IOException {
@@ -38,7 +39,7 @@ public final class EvaluationTest {
 		try (FileReader in = new FileReader("config.properties")) {
 			config.load(in);
 		}
-		level_site_ports_string = config.getProperty("level-site-ports").split(",");
+		String [] level_site_ports_string = config.getProperty("level-site-ports").split(",");
 		levels = level_site_ports_string.length;
 		level_site_ips = new String[levels];
 		for (int i = 0; i < levels; i++) {
@@ -49,6 +50,12 @@ public final class EvaluationTest {
 		data_directory = config.getProperty("data_directory");
 		server_ip = config.getProperty("server-ip");
 		server_port = Integer.parseInt(config.getProperty("server-port"));
+
+		level_site_ports = new int[levels];
+		for (int i = 0; i < levels; i++) {
+			String port_string = level_site_ports_string[i].replaceAll("[^0-9]", "");
+			level_site_ports[i] = Integer.parseInt(port_string);
+		}
 	}
 
 	@Test
@@ -64,27 +71,24 @@ public final class EvaluationTest {
 		        String expected_classification = values[2];
 				String full_feature_path = new File(data_directory, features).toString();
 				String full_data_set_path = new File(data_directory, data_set).toString();
-				System.out.println(full_data_set_path);
 				String classification = test_case(full_data_set_path, full_feature_path, levels, key_size, precision,
-		        		level_site_ips, level_site_ports_string, server_ip, server_port);
+		        		level_site_ips, server_ip, server_port);
 				System.out.println(expected_classification + " =!= " + classification);
 				assertEquals(expected_classification, classification);
 		    }
 		}
 	}
 
-	public static String test_case(String training_data, String features_file, int levels,
+	public String test_case(String training_data, String features_file, int levels,
 								   int key_size, int precision,
-			String [] level_site_ips, String [] level_site_ports_string, String server_ip, int server_port)
+			String [] level_site_ips, String server_ip, int server_port)
 			throws InterruptedException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeySpecException {
 		
-		int [] level_site_ports = new int[levels];
+
 
 		// Create Level sites
     	level_site_server [] level_sites = new level_site_server[levels];
     	for (int i = 0; i < level_sites.length; i++) {
-			String port_string = level_site_ports_string[i].replaceAll("[^0-9]", "");
-    		level_site_ports[i] = Integer.parseInt(port_string);
     		level_sites[i] = new level_site_server(level_site_ports[i], precision,
 					new AES("AppSecSpring2023"));
         	new Thread(level_sites[i]).start();

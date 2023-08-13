@@ -10,38 +10,26 @@ import java.net.Socket;
 // They can own multiple levels, as the data shouldn't leave their site from my understanding
 public class DataProvider implements Runnable {
 
-    int DataProviderIndex=0;
-    ObjectInputStream fromSiteMain;
-    ObjectOutputStream toSiteMain;
-    Instances[] localInstances;
-    int getDataProviderIndex(){
-        return this.DataProviderIndex;
-    }
+    private int port;
+    Instances local_instances;
 
-    void setDataProviderIndex(int DPI){
-        this.DataProviderIndex=DPI;
-    }
-
-    public DataProvider(int DPI) {
-        this.DataProviderIndex=DPI;
+    public DataProvider(Instances local_instances, int port) {
+        this.port = port;
+        this.local_instances = local_instances;
     }
 
     @Override
     public void run() {
-        // Within this run, you should complete the training
-        int server_port=9000+getDataProviderIndex();
-        try {
-            Socket client_socket=new Socket("127.0.0.1", server_port);
-            toSiteMain = new ObjectOutputStream(client_socket.getOutputStream());
-            fromSiteMain = new ObjectInputStream(client_socket.getInputStream());
-            Object x=fromSiteMain.readObject();
-            if (x instanceof Instances[]){
-                localInstances=(Instances[])x;
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            try(Socket client_site = serverSocket.accept()) {
+                ObjectOutputStream to_site_master = new ObjectOutputStream(client_site.getOutputStream());
+                ObjectInputStream from_site_master = new ObjectInputStream(client_site.getInputStream());
+
+                // Connection made...
             }
-        } catch (IOException ioe){
-            ioe.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }
