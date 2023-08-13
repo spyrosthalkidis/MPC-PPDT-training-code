@@ -67,7 +67,9 @@ public class TrainingTest {
     public void train(String data_set) throws Exception {
         // Read the dataset
         int num_data_providers = 7;
-        Instances [] vertical_data = DataHandling.createPartitions(data_set, num_data_providers);
+
+        Instances[] mydata=new Instances[1];
+        Instances [] vertical_data = DataHandling.createPartitions(data_set, num_data_providers, mydata);
 
         // Initialize them
         for (int i = 0; i < num_data_providers; i++) {
