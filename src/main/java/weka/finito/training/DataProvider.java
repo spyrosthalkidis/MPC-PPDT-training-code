@@ -1,8 +1,8 @@
 package weka.finito.training;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import weka.core.Instances;
+
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -11,7 +11,9 @@ import java.net.Socket;
 public class DataProvider implements Runnable {
 
     int DataProviderIndex=0;
-
+    ObjectInputStream fromSiteMain;
+    ObjectOutputStream toSiteMain;
+    Instances[] localInstances;
     int getDataProviderIndex(){
         return this.DataProviderIndex;
     }
@@ -29,12 +31,17 @@ public class DataProvider implements Runnable {
         // Within this run, you should complete the training
         int server_port=9000+getDataProviderIndex();
         try {
-            ServerSocket serverSocket = new ServerSocket(server_port);
-            Socket ss= serverSocket.accept();
-            InputStreamReader in = new InputStreamReader(ss.getInputStream());
-            BufferedReader bf = new BufferedReader(in);
+            Socket client_socket=new Socket("127.0.0.1", server_port);
+            toSiteMain = new ObjectOutputStream(client_socket.getOutputStream());
+            fromSiteMain = new ObjectInputStream(client_socket.getInputStream());
+            Object x=fromSiteMain.readObject();
+            if (x instanceof Instances[]){
+                localInstances=(Instances[])x;
+            }
         } catch (IOException ioe){
             ioe.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 }
