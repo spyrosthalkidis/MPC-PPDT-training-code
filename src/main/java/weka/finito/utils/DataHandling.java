@@ -15,13 +15,14 @@ public class DataHandling {
 
     // Kick off Data Handling by reading the data set and splitting it.
     // Question: Are we assuming all Data Providers know all classes??? Perhaps we can assume yes for now...
-    public static Instances @NotNull [] createPartitions(String fullDataSetPath, int noParties)
+    public static Instances @NotNull [][] createPartitions(String fullDataSetPath, int noParties)
             throws Exception {
         Instances data = read_data(fullDataSetPath);
 
         //data.deleteWithMissingClass();
-        int numAttributes, noElementsForPartition, noElementsForLastPartition;
+        int noLines, numAttributes, noElementsForPartition, noElementsForLastPartition;
 
+        noLines = data.size();
         numAttributes = data.numAttributes();
         noElementsForPartition = numAttributes / noParties;
         noElementsForLastPartition = numAttributes;
@@ -30,7 +31,7 @@ public class DataHandling {
         // TODO: Set as a parameter probably?
         System.out.println("Last attribute:" + data.attribute(numAttributes-1).name());
         Remove removeFilter = new Remove();
-        Instances [] newData = new Instances[noParties];
+        Instances [][] newData = new Instances[noParties][noLines];
         int [] indices = new int[numAttributes];
         if (noElementsForPartition == 0){
             System.out.println("--");
@@ -42,7 +43,7 @@ public class DataHandling {
             removeFilter.setAttributeIndicesArray(indices);
             removeFilter.setInvertSelection(true);
             removeFilter.setInputFormat(data);
-            newData[0] = Filter.useFilter(data, removeFilter);
+            newData[0][0] = Filter.useFilter(data, removeFilter);
         }
         else {
 
@@ -69,8 +70,11 @@ public class DataHandling {
                 }
                 removeFilter.setAttributeIndicesArray(indices);
                 removeFilter.setInvertSelection(true);
-                removeFilter.setInputFormat(data);
-                newData[i] = Filter.useFilter(data, removeFilter);
+
+                for (int j=0; j<noElements; j++) {
+                    removeFilter.setInputFormat(newData[i][j]);
+                    newData[i][j] = Filter.useFilter(data, removeFilter);
+                }
             }
         }
         return newData;
