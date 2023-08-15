@@ -1,17 +1,21 @@
 package weka.finito.training;
 
 import weka.attributeSelection.GainRatioAttributeEval;
+import weka.classifiers.trees.J48;
 import weka.classifiers.trees.j48.*;
 import weka.core.Attribute;
+import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.Utils;
 import weka.finito.utils.DataHandling;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.net.Socket;
+import java.util.Enumeration;
 import java.util.Stack;
 
 // This will work with DataProviders to collect the needed data on how to make PPDT
@@ -30,14 +34,17 @@ public class SiteMain implements Runnable {
     protected boolean m_isEmpty=false;
     protected ClassifierTree[] m_sons;
     protected ClassifierSplitModel m_localModel;
-    Object m_transactionVector;
+    protected double[] m_distribution;
 
-    Instances[] m_insts;
+
+    Instances[][] m_insts;
     Stack m_requirementStack;
 
     private String [] data_provider_ips;
     private int [] ports;
     private int port = -1;
+
+    public static int noParties=7;
 
     public SiteMain(String [] data_provider_ips, int [] ports) {
         this.data_provider_ips = data_provider_ips;
@@ -86,13 +93,38 @@ public class SiteMain implements Runnable {
         }
         return iOPUCE;
     }
-    public void SiteMain(String[] hosts, int[] ports, int index, String fullDatasetPath, int noParties,
-                         ClassifierTree j48) throws Exception {
+    public static void main(String[] args) {
+        String[] hosts;
+        int[] ports;
+
+        hosts=new String[noParties];
+        ports=new int[noParties];
+        for (int i=0; i<noParties; i++){
+            hosts[i]="127.0.0.1";
+            ports[i]=9000+i;
+        }
+        Instances data=null;
+        String fullDatasetPath="/home/spyros/MPC-PPDT-training/data/D1.arff";
+        try {
+            data = DataHandling.read_data(fullDatasetPath);
+        } catch(IOException ioe){
+            ioe.printStackTrace();
+        }
+        try {
+            SiteMain siteMain = new SiteMain(hosts, ports, 0, fullDatasetPath, noParties, data, false);
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public SiteMain(String[] hosts, int[] ports, int index, String fullDatasetPath, int noParties,
+                         Instances data, boolean isSubtree) throws Exception {
         double maxInfoGainRatio = 0;
         this.data_provider_ips = hosts;
         this.ports = ports;
 
         Instances[] mydata=new Instances[1];
+
         m_insts = DataHandling.createPartitions(fullDatasetPath, noParties);
         for (int i=0; i<noParties; i++){
             Socket mysocket = new Socket(hosts[i], ports[i]);
@@ -107,19 +139,25 @@ public class SiteMain implements Runnable {
             to_server.flush();
 
         }
-        Instances[] m_insts_union;
-
-        m_insts_union=mydata;
-        m_localModel = m_toSelectModel.selectModel(m_insts_union[0]);
+        Instances[] m_insts_union=null;
+        if (!isSubtree) {
+            m_insts_union = mydata;
+            m_localModel = m_toSelectModel.selectModel(m_insts_union[0]);
+        } else {
+            m_insts_union[0]=data;
+        }
         ppdt = new ClassifierTree(m_toSelectModel);
-        BinC45ModelSelection j48_model = new BinC45ModelSelection(2, m_insts[0], true, false);
-        j48 = new C45PruneableClassifierTree(j48_model, true, (float) 0.25, true, true, true);
-        if (allAttributesInSameClass(m_insts)) {
+        BinC45ModelSelection j48_model = new BinC45ModelSelection(2, m_insts_union[0], true, false);
+        C45PruneableClassifierTree j48 = new C45PruneableClassifierTree(j48_model, true, (float) 0.25, true, true, true);
+        if (allAttributesInSameClass(m_insts_union)) {
             //create a leaf node for the decision tree saying to choose that same class
-            String sameClass = m_insts[0].attribute(m_insts[0].size()-1).name();
+            String sameClass = m_insts_union[0].attribute(m_insts_union[0].size()-1).name();
             m_isLeaf = true;
-            if (Utils.eq(m_insts[0].sumOfWeights(), 0)) {
+            if (Utils.eq(m_insts_union[0].sumOfWeights(), 0)) {
+                int noClasses=m_insts_union[0].numClasses();
+                m_distribution=new double[noClasses];
                 m_isEmpty = true;
+                return;
             }
             String result = sameClass;
 
@@ -128,32 +166,43 @@ public class SiteMain implements Runnable {
         }
         m_sons = new ClassifierTree[m_localModel.numSubsets()];
         for (int i = 0; i < m_sons.length; i++) {
-        if (noneOfTheFeaturesProvideInfoGain(m_insts)
-                || instanceOfPreviouslyUnseenClassEncountered(m_insts, i)) {
+            if (noneOfTheFeaturesProvideInfoGain(m_insts_union)
+                    || instanceOfPreviouslyUnseenClassEncountered(m_insts_union, i)) {
                 ClassifierTree newTree = new ClassifierTree(m_toSelectModel);
-                newTree.buildTree(m_insts[i], false);
+                newTree.buildTree(m_insts_union[i], false);
                 ppdt = newTree;
             }
         }
 
         Attribute[] attribute = new Attribute[1];
-        maxInfoGainRatio = attribMaxInfoGainRatio(m_insts, attribute);
-        for (int i = 0; i < noParties; i++) {
-            m_localModel.split(m_insts[i]);
-            m_localModel.resetDistribution(m_insts[i]);
-        }
+        maxInfoGainRatio = attribMaxInfoGainRatio(m_insts_union, attribute);
 
-        SiteMain(hosts, ports, index, fullDatasetPath, noParties, j48);
+        Instances[] splitData = splitData(m_insts_union[0], attribute[0]);
+        m_localModel.resetDistribution(m_insts_union[0]);
+
+        SiteMain siteMain=new SiteMain(hosts, ports, index, fullDatasetPath, noParties, splitData[0], true);
+
         m_sons = new ClassifierTree[m_localModel.numSubsets()];
         for (int i = 0; i < m_sons.length; i++) {
             ClassifierTree newTree = new ClassifierTree(m_toSelectModel);
-            newTree.buildTree(m_insts[i], false);
+            newTree.buildTree(m_insts[i][0], false);
             ppdt = newTree;
         }
-
-        m_transactionVector = Array.newInstance(boolean.class, m_insts[index].numInstances());
     }
 
+    public Instances[] splitData(Instances data, Attribute att) {
+
+        Instances[] splitData = new Instances[att.numValues()];
+        for (int j = 0; j < att.numValues(); j++) {
+            splitData[j] = new Instances(data, data.numInstances());
+        }
+        Enumeration instEnum = data.enumerateInstances();
+        while (instEnum.hasMoreElements()) {
+            Instance inst = (Instance) instEnum.nextElement();
+            splitData[(int) inst.value(att)].add(inst);
+        }
+        return splitData;
+    }
     public double attribMaxInfoGainRatio(Instances [] data, Attribute [] m_classifyingAttribute) throws Exception{
         m_classifyingAttribute=new Attribute[1];
         int maxIndex;
