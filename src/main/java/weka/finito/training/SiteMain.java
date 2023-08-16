@@ -37,7 +37,7 @@ public class SiteMain implements Runnable {
     protected double[] m_distribution;
 
 
-    Instances[][] m_insts;
+    Instances m_insts;
     Stack m_requirementStack;
 
     private String [] data_provider_ips;
@@ -125,7 +125,8 @@ public class SiteMain implements Runnable {
 
         Instances[] mydata=new Instances[1];
 
-        m_insts = DataHandling.createPartitions(fullDatasetPath, noParties);
+        m_insts = DataHandling.create_Partitions(fullDatasetPath, noParties, mydata);
+        /*
         for (int i=0; i<noParties; i++){
             Socket mysocket = new Socket(hosts[i], ports[i]);
 
@@ -139,9 +140,12 @@ public class SiteMain implements Runnable {
             to_server.flush();
 
         }
+        */
+
         Instances[] m_insts_union=null;
         if (!isSubtree) {
             m_insts_union = mydata;
+            m_toSelectModel=new BinC45ModelSelection(2, m_insts_union[0], true, false);
             m_localModel = m_toSelectModel.selectModel(m_insts_union[0]);
         } else {
             m_insts_union[0]=data;
@@ -151,7 +155,7 @@ public class SiteMain implements Runnable {
         C45PruneableClassifierTree j48 = new C45PruneableClassifierTree(j48_model, true, (float) 0.25, true, true, true);
         if (allAttributesInSameClass(m_insts_union)) {
             //create a leaf node for the decision tree saying to choose that same class
-            String sameClass = m_insts_union[0].attribute(m_insts_union[0].size()-1).name();
+            String sameClass = m_insts_union[0].attribute(0).name();
             m_isLeaf = true;
             if (Utils.eq(m_insts_union[0].sumOfWeights(), 0)) {
                 int noClasses=m_insts_union[0].numClasses();
@@ -185,7 +189,7 @@ public class SiteMain implements Runnable {
         m_sons = new ClassifierTree[m_localModel.numSubsets()];
         for (int i = 0; i < m_sons.length; i++) {
             ClassifierTree newTree = new ClassifierTree(m_toSelectModel);
-            newTree.buildTree(m_insts[i][0], false);
+            newTree.buildTree(m_insts, false);
             ppdt = newTree;
         }
     }
