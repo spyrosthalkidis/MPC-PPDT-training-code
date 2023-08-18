@@ -15,6 +15,7 @@ import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Stack;
 
@@ -51,13 +52,13 @@ public class SiteMain implements Runnable {
         this.ports = ports;
     }
 
-    public boolean allAttributesInSameClass(Instances[] newData) {
+    public boolean allAttributesInSameClass(Instances m_instances) {
         boolean aAISC=true;
-        int numAttributes = newData[0].numAttributes();
-        String finalClass = newData[0].attribute(numAttributes-1).name();
-        for (int i=1; i<newData.length; i++) {
-            numAttributes=newData[i].numAttributes();
-            String currentClass=newData[i].attribute(numAttributes-1).name();
+        int numAttributes = m_instances.get(0).numAttributes();
+        String finalClass = m_instances.get(0).attribute(numAttributes-1).name();
+        for (int i=1; i<m_instances.numInstances(); i++) {
+            numAttributes=m_instances.get(i).numAttributes();
+            String currentClass=m_instances.get(i).attribute(numAttributes-1).name();
             if (!currentClass.equals(finalClass)) {
                 aAISC=false;
                 break;
@@ -66,10 +67,10 @@ public class SiteMain implements Runnable {
         return aAISC;
     }
 
-    public boolean noneOfTheFeaturesProvideInfoGain(Instances[] newData) throws Exception{
+    public boolean noneOfTheFeaturesProvideInfoGain(Instances newData) throws Exception{
         boolean nOTFPIG=true;
         double[] gainRatios =evaluateGainRatio(newData);
-        for (int i=0; i< newData.length; i++) {
+        for (int i=0; i< newData.numInstances(); i++) {
             if (gainRatios[i]!=0) {
                 nOTFPIG=false;
                 break;
@@ -78,13 +79,13 @@ public class SiteMain implements Runnable {
         return nOTFPIG;
     }
 
-    public boolean instanceOfPreviouslyUnseenClassEncountered(Instances[] m_insts, int i){
+    public boolean instanceOfPreviouslyUnseenClassEncountered(Instances m_insts, int i){
         boolean iOPUCE=true;
-        String currentClass=m_insts[i].attribute(m_insts[i].size()-1).name();
+        String currentClass=m_insts.get(i).attribute(m_insts.get(i).numValues()-1).name();
         for (int j = 0; j < i; j++){
-            String myClass = m_insts[j].attribute(m_insts[j].size()-1).name();
+            String myClass = m_insts.get(i).attribute(m_insts.get(i).numValues()-1).name();
             for (int k = 0; k < j; k++) {
-                String lastClass = m_insts[k].attribute(m_insts[k].size()-1).name();
+                String lastClass = m_insts.get(k).attribute(m_insts.get(i).numValues()-1).name();
                 if (myClass.equals(lastClass)||myClass.equals(currentClass)) {
                     iOPUCE = false;
                     break;
@@ -123,42 +124,36 @@ public class SiteMain implements Runnable {
         this.data_provider_ips = hosts;
         this.ports = ports;
 
-        Instances[] mydata=new Instances[1];
+        Instances mydata;
+        double[] classlabels;
 
-        m_insts = DataHandling.create_Partitions(fullDatasetPath, noParties, mydata);
-        /*
-        for (int i=0; i<noParties; i++){
-            Socket mysocket = new Socket(hosts[i], ports[i]);
-
-
-            ObjectOutputStream to_server = new ObjectOutputStream(mysocket.getOutputStream());
-            ObjectInputStream from_server = new ObjectInputStream(mysocket.getInputStream());
+        m_insts = DataHandling.create_Partitions(fullDatasetPath, noParties);
+        mydata = DataHandling.read_data(fullDatasetPath);
 
 
-            // Send the partitioned data to the corresponding DataProvider
-            to_server.writeObject(m_insts[i]);
-            to_server.flush();
-
-        }
-        */
-
-        Instances[] m_insts_union=null;
+        Instances m_insts_union=null;
         if (!isSubtree) {
             m_insts_union = mydata;
-            m_toSelectModel=new BinC45ModelSelection(2, m_insts_union[0], true, false);
-            m_localModel = m_toSelectModel.selectModel(m_insts_union[0]);
+            m_toSelectModel=new BinC45ModelSelection(2, m_insts_union, true, false);
+            m_localModel = m_toSelectModel.selectModel(m_insts_union);
         } else {
-            m_insts_union[0]=data;
+            m_insts_union=mydata;
+        }
+        m_insts_union.setClassIndex(m_insts_union.numAttributes() - 1);
+        classlabels=m_insts_union.attributeToDoubleArray(m_insts_union.numAttributes()-1);
+        ArrayList<Instance> mInstances = new ArrayList<>();
+        for(int i=0; i<=m_insts_union.numInstances()-1; i++){
+            mInstances.add(m_insts_union.instance(i));
         }
         ppdt = new ClassifierTree(m_toSelectModel);
-        BinC45ModelSelection j48_model = new BinC45ModelSelection(2, m_insts_union[0], true, false);
+        BinC45ModelSelection j48_model = new BinC45ModelSelection(2, m_insts_union, true, false);
         C45PruneableClassifierTree j48 = new C45PruneableClassifierTree(j48_model, true, (float) 0.25, true, true, true);
         if (allAttributesInSameClass(m_insts_union)) {
             //create a leaf node for the decision tree saying to choose that same class
-            String sameClass = m_insts_union[0].attribute(0).name();
+            String sameClass = m_insts_union.attribute(0).name();
             m_isLeaf = true;
-            if (Utils.eq(m_insts_union[0].sumOfWeights(), 0)) {
-                int noClasses=m_insts_union[0].numClasses();
+            if (Utils.eq(m_insts_union.sumOfWeights(), 0)) {
+                int noClasses=m_insts_union.numClasses();
                 m_distribution=new double[noClasses];
                 m_isEmpty = true;
                 return;
@@ -173,7 +168,7 @@ public class SiteMain implements Runnable {
             if (noneOfTheFeaturesProvideInfoGain(m_insts_union)
                     || instanceOfPreviouslyUnseenClassEncountered(m_insts_union, i)) {
                 ClassifierTree newTree = new ClassifierTree(m_toSelectModel);
-                newTree.buildTree(m_insts_union[i], false);
+                newTree.buildTree(m_insts_union, false);
                 ppdt = newTree;
             }
         }
@@ -181,8 +176,8 @@ public class SiteMain implements Runnable {
         Attribute[] attribute = new Attribute[1];
         maxInfoGainRatio = attribMaxInfoGainRatio(m_insts_union, attribute);
 
-        Instances[] splitData = splitData(m_insts_union[0], attribute[0]);
-        m_localModel.resetDistribution(m_insts_union[0]);
+        Instances[] splitData = splitData(m_insts_union, attribute[0]);
+        m_localModel.resetDistribution(m_insts_union);
 
         SiteMain siteMain=new SiteMain(hosts, ports, index, fullDatasetPath, noParties, splitData[0], true);
 
@@ -207,21 +202,21 @@ public class SiteMain implements Runnable {
         }
         return splitData;
     }
-    public double attribMaxInfoGainRatio(Instances [] data, Attribute [] m_classifyingAttribute) throws Exception{
+    public double attribMaxInfoGainRatio(Instances data, Attribute [] m_classifyingAttribute) throws Exception{
         m_classifyingAttribute=new Attribute[1];
         int maxIndex;
         double [] gainRatios;
-        gainRatios = new double[data.length];
+        gainRatios = new double[data.numInstances()];
         gainRatios = evaluateGainRatio(data);
         maxIndex = Utils.maxIndex(gainRatios);
-        m_classifyingAttribute[0] = data[maxIndex].attribute(maxIndex);
+        m_classifyingAttribute[0] = data.get(maxIndex).attribute(maxIndex);
         return gainRatios[maxIndex];
     }
-    double[] evaluateGainRatio(Instances[] data) throws Exception{
-        double[] gainRatios = new double[data.length];
-        for (int i = 0; i < data.length; i++) {
+    double[] evaluateGainRatio(Instances data) throws Exception{
+        double[] gainRatios = new double[data.numInstances()];
+        for (int i = 0; i < data.numInstances(); i++) {
             GainRatioAttributeEval gainRatioAttributeEval = new GainRatioAttributeEval();
-            gainRatioAttributeEval.buildEvaluator(data[i]);
+            gainRatioAttributeEval.buildEvaluator(data);
             gainRatios[i] = gainRatioAttributeEval.evaluateAttribute(0);
         }
         return gainRatios;
