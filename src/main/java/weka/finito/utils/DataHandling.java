@@ -18,7 +18,7 @@ import java.util.Arrays;
 
 public class DataHandling {
 
-    public static Instances create_Partitions(String fullDataSetPath, int noParties, Instances[] mydata) throws Exception {
+    public static Instances create_Partitions(String fullDataSetPath, int noParties) throws Exception {
         Instances data = read_data(fullDataSetPath);
         data.setClassIndex(data.numAttributes()-1);
         int noLines, numAttributes, noElementsForPartition, noElementsForLastPartition;
@@ -83,77 +83,9 @@ public class DataHandling {
                 }
             }
         }
-        mydata[0]= (Instances) data;
+
         return data;
     }
-    /*
-    // Kick off Data Handling by reading the data set and splitting it.
-    // Question: Are we assuming all Data Providers know all classes??? Perhaps we can assume yes for now...
-    public static Instances @NotNull [][] createPartitions(String fullDataSetPath, int noParties, Instances[] mydata)
-            throws Exception {
-        Instances data = read_data(fullDataSetPath);
-
-        //data.deleteWithMissingClass();
-        int noLines, numAttributes, noElementsForPartition, noElementsForLastPartition;
-
-        noLines = data.size();
-        numAttributes = data.numAttributes();
-        noElementsForPartition = numAttributes / noParties;
-        noElementsForLastPartition = numAttributes;
-
-        //System.out.println("First attribute:"+data.attribute(0).name());
-        // TODO: Set as a parameter probably?
-        System.out.println("Last attribute:" + data.attribute(numAttributes-1).name());
-        Remove removeFilter = new Remove();
-        Instances [][] newData = new Instances[noParties][noLines];
-        int [] indices = new int[numAttributes];
-        if (noElementsForPartition == 0){
-            System.out.println("--");
-            for (int j = 0; j < numAttributes; j++){
-                indices[j] = j;
-                System.out.print(indices[j] + " ");
-            }
-            System.out.println();
-            removeFilter.setAttributeIndicesArray(indices);
-            removeFilter.setInvertSelection(true);
-            removeFilter.setInputFormat(data);
-            newData[0][0] = Filter.useFilter(data, removeFilter);
-        }
-        else {
-
-            for (int i=0; i<noParties; i++) {
-                System.out.println("--");
-
-                //indices[0]=0;
-                indices[numAttributes - 1] = numAttributes - 1;
-                int noElements;
-                if (i != noParties - 1) {
-                    noElements = noElementsForPartition;
-                    noElementsForLastPartition -= noElements;
-                }
-                else {
-                    noElements = noElementsForLastPartition - 2;
-                }
-                if (noElements != 0) {
-                    //System.out.print(indices[0] + " ");
-                    for (int j = 1; j < noElements + 1; j++) {
-                        indices[j] = i * noElementsForPartition + j;
-                        System.out.print(indices[j] + " ");
-                    }
-                    System.out.println(indices[numAttributes - 1] + " ");
-                }
-                removeFilter.setAttributeIndicesArray(indices);
-                removeFilter.setInvertSelection(true);
-
-                for (int j=0; j<noElements; j++) {
-                    removeFilter.setInputFormat(newData[i][j]);
-                    newData[i][j] = Filter.useFilter(data, removeFilter);
-                }
-            }
-        }
-        return newData;
-    }
-    */
     // Read either ARFF or CSV file
     public static Instances read_data(@NotNull String file) throws IOException {
         Instances data = null;
