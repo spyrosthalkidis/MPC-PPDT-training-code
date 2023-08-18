@@ -69,7 +69,7 @@ public class TrainingTest {
         int num_data_providers = 7;
 
         Instances[] mydata=new Instances[1];
-        Instances vertical_data = DataHandling.create_Partitions(data_set, num_data_providers, mydata);
+        Instances vertical_data = DataHandling.create_Partitions(data_set, num_data_providers);
 
         // Initialize them
         for (int i = 0; i < num_data_providers; i++) {
