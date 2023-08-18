@@ -1,7 +1,6 @@
 package weka.finito.training;
 
 import weka.attributeSelection.GainRatioAttributeEval;
-import weka.classifiers.trees.J48;
 import weka.classifiers.trees.j48.*;
 import weka.core.Attribute;
 import weka.core.Instance;
@@ -12,8 +11,6 @@ import weka.finito.utils.DataHandling;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintWriter;
-import java.lang.reflect.Array;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -36,7 +33,7 @@ public class SiteMain implements Runnable {
     protected ClassifierTree[] m_sons;
     protected ClassifierSplitModel m_localModel;
     protected double[] m_distribution;
-
+    protected Instances m_trainInstances;
 
     Instances m_insts;
     Stack m_requirementStack;
@@ -46,6 +43,7 @@ public class SiteMain implements Runnable {
     private int port = -1;
 
     public static int noParties=7;
+    public Attribute m_classifyingAttribute;
 
     public SiteMain(String [] data_provider_ips, int [] ports) {
         this.data_provider_ips = data_provider_ips;
@@ -140,6 +138,7 @@ public class SiteMain implements Runnable {
         } else {
             m_insts_union=mydata;
         }
+        this.m_trainInstances=m_insts_union;
         m_insts_union.setClassIndex(m_insts_union.numAttributes() - 1);
         classlabels=m_insts_union.attributeToDoubleArray(m_insts_union.numAttributes()-1);
         ArrayList<Instance> mInstances = new ArrayList<>();
@@ -174,10 +173,10 @@ public class SiteMain implements Runnable {
             }
         }
 
-        Attribute[] attribute = new Attribute[1];
-        maxInfoGainRatio = attribMaxInfoGainRatio(m_insts_union, attribute);
 
-        Instances[] splitData = splitData(m_insts_union, attribute[0]);
+        maxInfoGainRatio = attribMaxInfoGainRatio(m_insts_union);
+
+        Instances[] splitData = splitData(m_insts_union);
         m_localModel.resetDistribution(m_insts_union);
 
         SiteMain siteMain=new SiteMain(hosts, ports, index, fullDatasetPath, noParties, splitData[0], true);
@@ -190,35 +189,34 @@ public class SiteMain implements Runnable {
         }
     }
 
-    public Instances[] splitData(Instances data, Attribute att) {
+    public Instances[] splitData(Instances data) {
 
-        Instances[] splitData = new Instances[att.numValues()];
-        for (int j = 0; j < att.numValues(); j++) {
+        Instances[] splitData = new Instances[m_classifyingAttribute.numValues()];
+        for (int j = 0; j < m_classifyingAttribute.numValues(); j++) {
             splitData[j] = new Instances(data, data.numInstances());
         }
         Enumeration instEnum = data.enumerateInstances();
         while (instEnum.hasMoreElements()) {
             Instance inst = (Instance) instEnum.nextElement();
-            splitData[(int) inst.value(att)].add(inst);
+            splitData[(int) inst.value(m_classifyingAttribute)].add(inst);
         }
         return splitData;
     }
-    public double attribMaxInfoGainRatio(Instances data, Attribute [] m_classifyingAttribute) throws Exception{
-        m_classifyingAttribute=new Attribute[1];
+    public double attribMaxInfoGainRatio(Instances data) throws Exception{
+
         int maxIndex;
         double [] gainRatios;
-        gainRatios = new double[data.numInstances()];
         gainRatios = evaluateGainRatio(data);
         maxIndex = Utils.maxIndex(gainRatios);
-        m_classifyingAttribute[0] = data.get(maxIndex).attribute(maxIndex);
+        m_classifyingAttribute = data.get(maxIndex).attribute(maxIndex);
         return gainRatios[maxIndex];
     }
     double[] evaluateGainRatio(Instances data) throws Exception{
-        double[] gainRatios = new double[data.numInstances()];
-        for (int i = 0; i < data.numInstances(); i++) {
+        double[] gainRatios = new double[data.numAttributes()];
+        for (int i = 0; i < data.numAttributes(); i++) {
             GainRatioAttributeEval gainRatioAttributeEval = new GainRatioAttributeEval();
             gainRatioAttributeEval.buildEvaluator(data);
-            gainRatios[i] = gainRatioAttributeEval.evaluateAttribute(0);
+            gainRatios[i] = gainRatioAttributeEval.evaluateAttribute(i);
         }
         return gainRatios;
     }
