@@ -134,6 +134,7 @@ public class SiteMain implements Runnable {
         Instances m_insts_union=null;
         if (!isSubtree) {
             m_insts_union = mydata;
+            m_insts_union.setClassIndex(data.numAttributes()-1);
             m_toSelectModel=new BinC45ModelSelection(2, m_insts_union, true, false);
             m_localModel = m_toSelectModel.selectModel(m_insts_union);
         } else {
