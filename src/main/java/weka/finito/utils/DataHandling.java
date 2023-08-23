@@ -76,7 +76,7 @@ public class DataHandling {
                     int index=indices[j];
                     newInst[0] = (double) data.attribute(0).addStringValue(data.attribute(i).name());
                     // Print the current attribute.
-                    System.out.print(data.attribute(i).name() + ": ");
+                    System.out.print(data.attribute(j).name() + ": ");
                     newData[i]=data.get(index).toDoubleArray();
                     newInst[1] = (double) data.attribute(1).addStringValue(newData[i].toString());
                     data.add(new DenseInstance(1.0, newInst));
