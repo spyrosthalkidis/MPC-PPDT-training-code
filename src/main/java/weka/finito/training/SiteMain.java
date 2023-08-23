@@ -213,9 +213,10 @@ public class SiteMain implements Runnable {
     }
     double[] evaluateGainRatio(Instances data) throws Exception{
         double[] gainRatios = new double[data.numAttributes()];
-        for (int i = 0; i < data.numAttributes(); i++) {
+
             GainRatioAttributeEval gainRatioAttributeEval = new GainRatioAttributeEval();
             gainRatioAttributeEval.buildEvaluator(data);
+        for (int i = 0; i < data.numAttributes(); i++) {
             gainRatios[i] = gainRatioAttributeEval.evaluateAttribute(i);
         }
         return gainRatios;
