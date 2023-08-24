@@ -71,15 +71,28 @@ public class DataHandling {
                     }
                     System.out.println(indices[numAttributes - 1] + " ");
                 }
+                if (i!=noParties-1) {
+                    for (int j = i*noElementsForPartition; j < (i+1)*noElementsForPartition; j++) {
+                        int index = indices[j];
+                        newInst[0] = (double) data.attribute(0).addStringValue(data.attribute(i).name());
+                        // Print the current attribute.
+                        System.out.print(data.attribute(j).name() + ": ");
+                        newData[i] = data.get(index).toDoubleArray();
+                        newInst[1] = (double) data.attribute(1).addStringValue(newData[i].toString());
+                        data.add(new DenseInstance(1.0, newInst));
 
-                for (int j=0; j<indices.length; j++) {
-                    int index=indices[j];
-                    newInst[0] = (double) data.attribute(0).addStringValue(data.attribute(i).name());
-                    // Print the current attribute.
-                    System.out.print(data.attribute(j).name() + ": ");
-                    newData[i]=data.get(index).toDoubleArray();
-                    newInst[1] = (double) data.attribute(1).addStringValue(newData[i].toString());
-                    data.add(new DenseInstance(1.0, newInst));
+                }
+                } else if (i==noParties-1){
+                    for (int j=i*noElementsForPartition; j<i*noElementsForPartition+noElementsForLastPartition; j++){
+                        int index = indices[j];
+                        newInst[0] = (double) data.attribute(0).addStringValue(data.attribute(i).name());
+                        // Print the current attribute.
+                        System.out.print(data.attribute(j).name() + ": ");
+                        newData[i] = data.get(index).toDoubleArray();
+                        newInst[1] = (double) data.attribute(1).addStringValue(newData[i].toString());
+                        data.add(new DenseInstance(1.0, newInst));
+                    }
+
                 }
             }
         }
