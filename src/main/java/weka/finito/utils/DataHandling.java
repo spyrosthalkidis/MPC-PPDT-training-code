@@ -77,7 +77,7 @@ public class DataHandling {
                         newInst[0] = (double) data.attribute(0).addStringValue(data.attribute(i).name());
                         // Print the current attribute.
                         System.out.print(data.attribute(j).name() + ": ");
-                        newData[i] = data.get(index).toDoubleArray();
+                        newData[j] = data.get(index).toDoubleArray();
                         newInst[1] = (double) data.attribute(1).addStringValue(newData[j].toString());
                         data.add(new DenseInstance(1.0, newInst));
 
@@ -88,7 +88,7 @@ public class DataHandling {
                         newInst[0] = (double) data.attribute(0).addStringValue(data.attribute(i).name());
                         // Print the current attribute.
                         System.out.print(data.attribute(j).name() + ": ");
-                        newData[i] = data.get(index).toDoubleArray();
+                        newData[j] = data.get(index).toDoubleArray();
                         newInst[1] = (double) data.attribute(1).addStringValue(newData[j].toString());
                         data.add(new DenseInstance(1.0, newInst));
                     }
