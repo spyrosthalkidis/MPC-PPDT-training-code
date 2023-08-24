@@ -21,6 +21,9 @@ public class DataHandling {
     public static Instances create_Partitions(String fullDataSetPath, int noParties) throws Exception {
         Instances data = read_data(fullDataSetPath);
         data.setClassIndex(data.numAttributes()-1);
+        int classIndex = data.classIndex();
+        int instanceIndex = data.numAttributes()-1; // Index of the instance you want to get the class value for
+        Instance instance = data.get(instanceIndex);
         int noLines, numAttributes, noElementsForPartition, noElementsForLastPartition;
 
         noLines = data.numInstances();
@@ -81,7 +84,10 @@ public class DataHandling {
                         newInst[1] = (double) data.attribute(1).addStringValue(newData[j].toString());
                         data.add(new DenseInstance(1.0, newInst));
 
-                }
+                    }
+                    Attribute classAttribute = data.attribute(classIndex);
+
+                    System.out.println(classAttribute.toString());
                 } else if (i==noParties-1){
                     for (int j=i*noElementsForPartition; j<i*noElementsForPartition+noElementsForLastPartition; j++){
                         int index = indices[j];
@@ -92,7 +98,9 @@ public class DataHandling {
                         newInst[1] = (double) data.attribute(1).addStringValue(newData[j].toString());
                         data.add(new DenseInstance(1.0, newInst));
                     }
+                    Attribute classAttribute = data.attribute(classIndex);
 
+                    System.out.println(classAttribute.toString());
                 }
                 System.out.println();
             }
