@@ -129,20 +129,20 @@ public class SiteMain implements Runnable {
         mydata = DataHandling.read_data(fullDatasetPath);
 
 
-        Instances m_insts_union=null;
+        Instances m_insts_union = null;
         if (!isSubtree) {
             m_insts_union = mydata;
-            m_insts_union.setClassIndex(data.numAttributes()-1);
-            m_toSelectModel=new BinC45ModelSelection(2, m_insts_union, true, false);
+            m_insts_union.setClassIndex(data.numAttributes() - 1);
+            m_toSelectModel = new BinC45ModelSelection(2, m_insts_union, true, false);
             m_localModel = m_toSelectModel.selectModel(m_insts_union);
         } else {
-            m_insts_union=mydata;
+            m_insts_union = mydata;
         }
-        this.m_trainInstances=m_insts_union;
+        this.m_trainInstances = m_insts_union;
         m_insts_union.setClassIndex(m_insts_union.numAttributes() - 1);
-        classlabels=m_insts_union.attributeToDoubleArray(m_insts_union.numAttributes()-1);
+        classlabels = m_insts_union.attributeToDoubleArray(m_insts_union.numAttributes() - 1);
         ArrayList<Instance> mInstances = new ArrayList<>();
-        for(int i=0; i<=m_insts_union.numInstances()-1; i++){
+        for (int i = 0; i <= m_insts_union.numInstances() - 1; i++) {
             mInstances.add(m_insts_union.instance(i));
         }
         ppdt = new ClassifierTree(m_toSelectModel);
@@ -153,8 +153,8 @@ public class SiteMain implements Runnable {
             String sameClass = m_insts_union.attribute(0).name();
             m_isLeaf = true;
             if (Utils.eq(m_insts_union.sumOfWeights(), 0)) {
-                int noClasses=m_insts_union.numClasses();
-                m_distribution=new double[noClasses];
+                int noClasses = m_insts_union.numClasses();
+                m_distribution = new double[noClasses];
                 m_isEmpty = true;
                 return;
             }
@@ -172,14 +172,29 @@ public class SiteMain implements Runnable {
                 ppdt = newTree;
             }
         }
+        Instances[] localInstances=null;
+        if (m_localModel.numSubsets() > 1) {
+            localInstances = m_localModel.split(data);
 
+            m_sons = new ClassifierTree[m_localModel.numSubsets()];
+            for (int i = 0; i < m_sons.length; i++) {
+                ClassifierTree newTree = new ClassifierTree(m_toSelectModel);
+                newTree.buildTree(localInstances[i], false);
+                m_sons[i]=newTree;
+                SiteMain siteMain = new SiteMain(hosts, ports, index, fullDatasetPath, noParties, m_sons[i].getTrainingData(), true);
+            }
 
+        } else {
+            m_isLeaf = true;
+            if (Utils.eq(data.sumOfWeights(), 0)) {
+                m_isEmpty = true;
+            }
+
+        }
         maxInfoGainRatio = attribMaxInfoGainRatio(m_insts_union);
 
-        Instances[] splitData = splitData(m_insts_union);
-        m_localModel.resetDistribution(m_insts_union);
 
-        SiteMain siteMain=new SiteMain(hosts, ports, index, fullDatasetPath, noParties, splitData[0], true);
+
 
         m_sons = new ClassifierTree[m_localModel.numSubsets()];
         for (int i = 0; i < m_sons.length; i++) {
@@ -189,19 +204,8 @@ public class SiteMain implements Runnable {
         }
     }
 
-    public Instances[] splitData(Instances data) {
 
-        Instances[] splitData = new Instances[m_classifyingAttribute.numValues()];
-        for (int j = 0; j < m_classifyingAttribute.numValues(); j++) {
-            splitData[j] = new Instances(data, data.numInstances());
-        }
-        Enumeration instEnum = data.enumerateInstances();
-        while (instEnum.hasMoreElements()) {
-            Instance inst = (Instance) instEnum.nextElement();
-            splitData[(int) inst.value(m_classifyingAttribute)].add(inst);
-        }
-        return splitData;
-    }
+
     public double attribMaxInfoGainRatio(Instances data) throws Exception{
 
         int maxIndex;
@@ -214,8 +218,10 @@ public class SiteMain implements Runnable {
     double[] evaluateGainRatio(Instances data) throws Exception{
         double[] gainRatios = new double[data.numAttributes()];
 
-            GainRatioAttributeEval gainRatioAttributeEval = new GainRatioAttributeEval();
-            gainRatioAttributeEval.buildEvaluator(data);
+        GainRatioAttributeEval gainRatioAttributeEval = new GainRatioAttributeEval();
+
+        gainRatioAttributeEval.buildEvaluator(data);
+
         for (int i = 0; i < data.numAttributes(); i++) {
             gainRatios[i] = gainRatioAttributeEval.evaluateAttribute(i);
         }
