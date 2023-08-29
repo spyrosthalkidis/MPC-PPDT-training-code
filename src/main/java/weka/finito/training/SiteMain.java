@@ -132,11 +132,14 @@ public class SiteMain implements Runnable {
         Instances m_insts_union = null;
         if (!isSubtree) {
             m_insts_union = mydata;
-            m_insts_union.setClassIndex(data.numAttributes() - 1);
+            m_insts_union.setClassIndex(mydata.numAttributes() - 1);
             m_toSelectModel = new BinC45ModelSelection(2, m_insts_union, true, false);
             m_localModel = m_toSelectModel.selectModel(m_insts_union);
         } else {
             m_insts_union = mydata;
+            m_insts_union.setClassIndex(mydata.numAttributes() - 1);
+            m_toSelectModel = new BinC45ModelSelection(2, m_insts_union, true, false);
+            m_localModel = m_toSelectModel.selectModel(m_insts_union);
         }
 
         this.m_trainInstances = m_insts_union;
@@ -174,9 +177,10 @@ public class SiteMain implements Runnable {
                 ppdt = newTree;
             }
         }
+
         Instances[] localInstances=null;
         if (m_localModel.numSubsets() > 1) {
-            localInstances = m_localModel.split(data);
+            localInstances = m_localModel.split(mydata);
 
             m_sons = new ClassifierTree[m_localModel.numSubsets()];
             for (int i = 0; i < m_sons.length; i++) {
