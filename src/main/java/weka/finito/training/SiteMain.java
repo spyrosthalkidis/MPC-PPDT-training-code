@@ -138,6 +138,7 @@ public class SiteMain implements Runnable {
         } else {
             m_insts_union = mydata;
         }
+
         this.m_trainInstances = m_insts_union;
         m_insts_union.setClassIndex(m_insts_union.numAttributes() - 1);
         classlabels = m_insts_union.attributeToDoubleArray(m_insts_union.numAttributes() - 1);
@@ -168,6 +169,7 @@ public class SiteMain implements Runnable {
             if (noneOfTheFeaturesProvideInfoGain(m_insts_union)
                     || instanceOfPreviouslyUnseenClassEncountered(m_insts_union, i)) {
                 ClassifierTree newTree = new ClassifierTree(m_toSelectModel);
+
                 newTree.buildTree(m_insts_union, false);
                 ppdt = newTree;
             }
@@ -179,6 +181,7 @@ public class SiteMain implements Runnable {
             m_sons = new ClassifierTree[m_localModel.numSubsets()];
             for (int i = 0; i < m_sons.length; i++) {
                 ClassifierTree newTree = new ClassifierTree(m_toSelectModel);
+                localInstances[i].setClassIndex(localInstances[i].numAttributes() - 1);
                 newTree.buildTree(localInstances[i], false);
                 m_sons[i]=newTree;
                 SiteMain siteMain = new SiteMain(hosts, ports, index, fullDatasetPath, noParties, m_sons[i].getTrainingData(), true);
