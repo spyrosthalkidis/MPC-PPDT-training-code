@@ -85,9 +85,12 @@ public class DataHandling {
                         data.add(new DenseInstance(1.0, newInst));
 
                     }
-                    Attribute classAttribute = data.attribute(classIndex);
+                    classIndex = data.classIndex();
+                    String classValue = instance.stringValue(classIndex);
+                    System.out.println(classValue);
+                    //Attribute classAttribute = data.attribute(classIndex);
 
-                    System.out.println(classAttribute.toString());
+                    //System.out.println(classAttribute.toString());
                 } else if (i==noParties-1){
                     for (int j=i*noElementsForPartition; j<i*noElementsForPartition+noElementsForLastPartition; j++){
                         int index = indices[j];
@@ -98,9 +101,12 @@ public class DataHandling {
                         newInst[1] = (double) data.attribute(1).addStringValue(newData[j].toString());
                         data.add(new DenseInstance(1.0, newInst));
                     }
-                    Attribute classAttribute = data.attribute(classIndex);
+                    classIndex = data.classIndex();
+                    String classValue = instance.stringValue(classIndex);
+                    System.out.println(classValue);
+                    //Attribute classAttribute = data.attribute(classIndex);
 
-                    System.out.println(classAttribute.toString());
+                    //System.out.println(classAttribute.toString());
                 }
                 System.out.println();
             }
